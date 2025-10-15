@@ -177,11 +177,233 @@ hcp(Vs,Es) =>
     hcp(Vs,Es,_).
 
 hcp(Vs,Es,K) =>
+    hcp_simple_check_vs(Vs),
+    hcp_simple_check_es(Es,Es1),
+    hcp_hybrid(Vs,Es1,K).
+    
+hcp_hybrid(Vs,Es) =>
+    hcp_hybrid(Vs,Es,_).
+
+hcp_hybrid(Vs,Es,K) =>
+    NumVs = len(Vs),
+    NumEs = len(Es),
+    K #= sum([B : {_,B} in Vs]),
+    KGt1 #<=> K #> 1,
+    NumEliminated = 0,
+    hcp_hybrid_aux(NumVs,Vs,NumVs,Es,NumEs,K,KGt1,NumEliminated).
+
+hcp_hybrid_aux(NumVs0,Vs,NumVs,Es,NumEs,K,KGt1,NumEliminated), NumVs =< 3 =>
+    hcp_dist(Vs,Es,K,KGt1).
+hcp_hybrid_aux(NumVs0,Vs,NumVs,Es,NumEs,K,KGt1,NumEliminated) =>
+    smallest_degree_vertex(Vs,Es,VB,MinDeg,Vs1,VMap,EMap),     % VB = (Vertex,B)
+    hcp_hybrid_aux2(NumVs0,Vs,NumVs,Es,NumEs,VB,MinDeg,Vs1,VMap,EMap,K,KGt1,NumEliminated).
+
+hcp_hybrid_aux2(NumVs0,Vs,NumVs,Es,NumEs,VB,MinDeg,Vs1,VMap,EMap,K,KGt1,NumEliminated), MinDeg*NumEliminated > NumVs0  =>
+%    printf("switching to dist %w %w %w %w\n",NumEliminated,MinDeg,NumVs,NumEs),
+    hcp_dist(Vs,Es,K,KGt1).
+hcp_hybrid_aux2(NumVs0,Vs,NumVs,Es,NumEs,VB,MinDeg,Vs1,VMap,EMap,K,KGt1,NumEliminated) =>
+    NumVs1 = NumVs-1,
+    K1 :: 0..NumVs1,
+    hcp_vertex_elimination(VB,VMap,Es,EMap,Es1,NumEs1,K,KGt1,K1,K1Gt1),
+    hcp_hybrid_aux(NumVs0,Vs1,NumVs1,Es1,NumEs1,K1,K1Gt1,NumEliminated+1).
+
+hcp_ve_aux([{V1,Bv1},{V2,Bv2}],NumVs,Es,NumEs,K,KGt1) =>
+    once member({V1,V2,B12}, Es),
+    once member({V2,V1,B21}, Es),
+    K #= Bv1+Bv2,
+    KGt1 #=> B12,
+    KGt1 #=> B21,
+    B12 #=> Bv1,
+    B12 #=> Bv2,
+    B21 #=> Bv1,
+    B21 #=> Bv2.
+hcp_ve_aux(Vs,NumVs,Es,NumEs,K,KGt1) =>
+    smallest_degree_vertex(Vs,Es,VB,MinDeg,Vs1,VMap,EMap),     % VB = (Vertex,B)
+    NumVs1 = NumVs-1,
+    K1 :: 0..NumVs1,
+    hcp_vertex_elimination(VB,VMap,Es,EMap,Es1,NumEs1,K,KGt1,K1,K1Gt1),
+%    printf("cutting %w %w |V|=%w |E|=%w\n",MinDeg,VB,len(Vs),NumEs),
+    hcp_ve_aux(Vs1,NumVs1,Es1,NumEs1,K1,K1Gt1).
+
+smallest_degree_vertex(Vs,Es,VB,MinDeg,Vs1,VMap,EMap) =>
+    VMap = new_map(),
+    DegMap = new_map(),
+    foreach({V,Bv} in Vs)
+        VMap.put(V,Bv),
+        DegMap.put(V, 0)
+    end,
+    EMap = new_map(),
+    foreach({V1,V2,B} in Es)
+        Key = (V1,V2),
+        EMap.put(Key,B),
+        DegMap.put(V1, DegMap.get(V1,0)+1)
+    end,
+    choose_vertex_to_cut(DegMap,Vs,VB,Vs1,MinDeg).   % Pair = {V,B}, choose V to eliminate
+
+%
+/*
+hcp_vertex_elimination(VB,VMap,Es,EMap,Es1,NumEs1,K,KGt1,K1,K1Gt1) ?=>
+    println($hcp_vertex_elimination(VB,VMap,Es,EMap,Es1,NumEs1,K,KGt1,K1,K1Gt1)),fail.
+*/
+hcp_vertex_elimination(VB,VMap,Es,EMap,Es1,NumEs1,K,KGt1,K1,K1Gt1) =>
+    VB = {V,Bv},
+    K #= K1+Bv,
+
+    K1Gt1 #<=> (K1 #> 1),
+    K1Gt1 #=> KGt1,
+
+    InVNeibs = [],
+    InVNeibsSet = new_set(),
+    OutVNeibs = [],
+    OutVNeibsSet = new_set(),
+    foreach ({U,W,B} in Es)
+        if U == V then
+            Bw = VMap.get(W,0),
+            B #=> Bv,
+            B #=> Bw,        
+            OutVNeibs := [W|OutVNeibs],
+            OutVNeibsSet.put(W)
+        elseif W == V then
+            Bu = VMap.get(U,0),    
+            B #=> Bu,
+            B #=> Bv,            
+            InVNeibs := [U|InVNeibs],
+            InVNeibsSet.put(U)
+        end
+    end,
+
+    E1Map = new_map(),
+    foreach({U,W,B} in Es, U !== V, W !== V, U !== W)
+        if InVNeibsSet.has_key(U) && OutVNeibsSet.has_key(W) then
+            true
+        else
+            E1Map.put((U,W),B)          % inherited
+        end
+    end,
+    AddedEs = [],
+    AddedBs = [],
+    foreach (U in InVNeibs, W in OutVNeibs, U !== W)
+        KeyUW = (U,W),
+        Bnew :: 0..1,
+        E1Map.put(KeyUW,Bnew),
+        if not EMap.has_key(KeyUW) then
+            AddedEs := [KeyUW|AddedEs],
+            AddedBs := [Bnew|AddedBs]
+        end
+    end,
+    NumEs1 = size(E1Map),
+%    println($addedEs(AddedEs)),
+%    println($addedBs(AddedBs)),    
+%    writeln((V,InVNeibs,OutVNeibs)),
+    %
+    % degree constraint
+    KGt1 #/\ Bv #=> sum([B : U in InVNeibs, B = EMap.get((U,V))]) #= 1,
+    KGt1 #/\ Bv #=> sum([B : W in OutVNeibs, B = EMap.get((V,W))]) #= 1,
+    % degree constraint on V's neighbors
+    %
+    % path-to-cycle constraint
+    foreach (U in InVNeibs)
+        Buv = EMap.get((U,V)),
+        if OutVNeibsSet.has_key(U) then
+            Bvu = EMap.get((V,U)),
+            K1Gt1 #=> #~Buv #\/ #~Bvu
+        end,
+        foreach (W in OutVNeibs, U !== W)
+            Bvw = EMap.get((V,W)),
+            B1uw = E1Map.get((U,W)),
+            Buv #/\ Bvw #=> B1uw,
+            if EMap.has_key((U,W)) then
+                Buw = EMap.get((U,W)),
+                Buv #/\ Bvw #=> #~Buw,
+                #~Buv #\/ #~Bvw #=> Buw #= B1uw
+            end
+        end
+    end,
+    %
+    % unique-path-through-v constraint
+    sum(AddedBs) #=< 1,
+    foreach ({(U,W),B1uw} in zip(AddedEs, AddedBs))
+        Buv = EMap.get((U,V)),
+        Bvw = EMap.get((V,W)),
+        B1uw #=> Buv #/\ Bvw
+    end,
+    %
+    Es1 = [{U,W,B} : ((U,W) = B) in E1Map],
+    true.
+%    printf("cutting %w degree = %w |E|=%w |E'|=%w\n", V, DegMap.get(V),EMap.size(), E1Map.size()).
+    
+% choose a vertex with the lowest degree    
+choose_vertex_to_cut(DegMap,[FirstPair@{U,B}|Vs],VB,Vs1,MinDeg) =>
+    Du = DegMap.get(U,0),
+    choose_vertex_to_cut(DegMap,FirstPair,Du,Vs,VB,Vs1,MinDeg).
+/*
+choose_vertex_to_cut(DegMap,U,Du,Vs,W,RVs,MinDeg) ?=>
+    println($choose_vertex_to_cut(DegMap,U,Du,Vs,W,RVs,MinDeg)),fail.
+*/    
+choose_vertex_to_cut(DegMap,U,Du,Vs,W,RVs,MinDeg),Du == 2 =>
+    W = U, RVs = Vs, MinDeg = 2.
+choose_vertex_to_cut(DegMap,U,Du,[],W,RVs,MinDeg) => W = U, RVs = [], MinDeg = Du.
+choose_vertex_to_cut(DegMap,U,Du,[Pair@{V,Bv}|Vs],W,RVs,MinDeg),
+    Dv = DegMap.get(V),
+    Dv < Du
+=>
+    RVs = [U|RVs1],
+    choose_vertex_to_cut(DegMap,Pair,Dv,Vs,W,RVs1,MinDeg).
+choose_vertex_to_cut(DegMap,U,Du,[V|Vs],W,RVs,MinDeg) =>
+    RVs = [V|RVs1],
+    choose_vertex_to_cut(DegMap,U,Du,Vs,W,RVs1,MinDeg).
+
+hcp_dist(Vs,Es,K,KGt1) =>
     VNumMap = new_map(),
     hcp_scc_check_vs(Vs,1,N,VNumMap,Bs,0,NZeros,0,MinK,hcp),
     AdjMap = new_map(),
     hcp_check_es(N,Es,VNumMap,AdjMap,hcp),
-    hcp_aux(Bs,Es,N,K,VNumMap,AdjMap,NZeros,MinK).
+    hcp_dist_aux(Bs,Es,N,K,KGt1,VNumMap,AdjMap,NZeros,MinK).
+
+hcp_dist_aux(Bs,Es,N,K,KGt1,VNumMap,AdjMap,NZeros,MinK) =>
+    A = to_array(Bs),
+    MaxK = max(N-NZeros,1),
+    K :: MinK..MaxK,
+    KGt2 #<=> (K #> 2),
+    KGt2 #=> KGt1,
+    
+    H = new_array(N,N),                              % H[I,J] = 1 iff edge (I,J) is in the cycle
+    foreach ({V1,V2,B} in Es)
+        I1 = VNumMap.get(V1),
+        I2 = VNumMap.get(V2),
+        H[I1,I2] = B,
+        (I1 != I2 ->
+            B #=> A[I1],
+            B #=> A[I2]
+        ;
+            true
+        )
+    end,
+    foreach (I in 1..N, J in 1..N)
+        Cell = H[I,J], 
+        if var(Cell) && not dvar(Cell) then
+            Cell = 0
+        end
+    end,
+    foreach (I in 1..N)                              % each vertex has exactly one incoming and one outgoing edge
+        TmpB #\/ #~A[I] #\/ #~KGt1,
+        TmpB #=> sum([H[I,J] : J in 1..N, J !== I]) #= 1,
+        TmpB #=> sum([H[J,I] : J in 1..N, J !== I]) #= 1        
+    end,
+     % ban sub-cycles
+    hcp_scc_choose_start(A,N,KGt1,MinK,Start),       % Start[I] = 1 iff the cycle starts at vertex I
+    DistA = new_array(N),                             % each in-cycle vertex has a unique distance from the start
+    DistA :: 0..MaxK-1,
+    foreach (I in 1..N)
+        Start[I] #=> DistA[I] #= 0,
+        Neibs = AdjMap.get(I,[]),
+        foreach (J in Neibs, H[I,J] !== 0)
+            if I < J then
+                #~KGt2 #\/ #~H[I,J] #\/ #~H[J,I]    % no cycle of size 2
+            end,
+            #~Start[J] #/\ H[I,J] #=>  DistA[J] #= DistA[I]+1
+        end
+    end.
 
 hcp_scc_check_vs([],I,N,_VNumMap,Bs,CountZeros0,CountZeros,CountOnes0,CountOnes,_Source) =>
     N = I-1,
@@ -213,6 +435,32 @@ hcp_scc_check_vs([VB|_Vs],_I,_N,_VNumMap,_Bs,_CountZeros0,_CountZeros,_CountOnes
     handle_exception($invalid_pair(VB), Source).
 hcp_scc_check_vs(Vs,_I,_N,_VNumMap,_Bs,_CountZeros0,_CountZeros,_CountOnes0,_CountOnes,Source) =>
     handle_exception($list_expected(Vs), Source).
+
+hcp_simple_check_vs([]) => true.
+hcp_simple_check_vs([{V,B}|Vs]) =>
+    hcp_scc_check_vertex(V,hcp),
+    hcp_scc_check_b(B,hcp),
+    hcp_simple_check_vs(Vs).
+hcp_simple_check_vs([VB|_Vs]) =>
+    handle_exception($invalid_pair(VB), hcp).
+hcp_simple_check_vs(Vs) =>
+    handle_exception($list_expected(Vs), hcp).
+
+hcp_simple_check_es([],Es1) => Es1 = [].
+hcp_simple_check_es([T@{V1,V2,B}|Es],Es1) =>
+    hcp_scc_check_vertex(V1,hcp),
+    hcp_scc_check_vertex(V2,hcp),
+    (V1 == V2 ->
+        Es1 = Es1R
+    ;
+        Es1 = [T|Es1R]
+    ),
+    hcp_scc_check_b(B,hcp),
+    hcp_simple_check_es(Es,Es1R).
+hcp_simple_check_es([E|_Es],Es1) =>
+    handle_exception($invalid_triplet(E), hcp).
+hcp_simple_check_es(Es,Es1) =>
+    handle_exception($list_expected(Es), hcp).
 
 hcp_scc_check_vertex(V,_Source), ground(V) => true.
 hcp_scc_check_vertex(V,Source) =>
@@ -263,71 +511,6 @@ hcp_grid_check_es(_NRows,_NCols,[E|_Es],Source) =>
     handle_exception($invalid_triplet(E), Source).
 hcp_grid_check_es(_NRows,_NCols,Es,Source) =>
     handle_exception($list_expected(Es), Source). 
-
-hcp_aux(_Bs,Es,N,K,VNumMap,AdjMap,_NZeros,MinK), MinK == N =>    % all vertices are in, convert this to circuit
-    K = N,
-    A = new_array(N),
-    A :: 1..N,
-    foreach (I in 1..N)
-        Neibs = AdjMap.get(I),
-        A[I] :: Neibs
-    end,
-    foreach ({V1,V2,B} in Es)
-        I1 = VNumMap.get(V1),
-        I2 = VNumMap.get(V2),
-        A[I1] #= I2 #<=> B
-    end,
-    circuit(A).
-hcp_aux(Bs,Es,N,K,VNumMap,AdjMap,NZeros,MinK) =>
-    A = to_array(Bs),
-    MaxK = max(N-NZeros,1),
-    K :: MinK..MaxK,
-    sum(Bs) #= K,
-    (MinK > 2 ->
-        KGt2 = 1,
-        KGt1 = 1
-    ;
-        KGt2 #<=> (K #> 2),
-        KGt1 #<=> (K #> 1),
-        KGt2 #=> KGt1
-    ),
-    H = new_array(N,N),                              % H[I,J] = 1 iff edge (I,J) is in the cycle
-    foreach ({V1,V2,B} in Es)
-        I1 = VNumMap.get(V1),
-        I2 = VNumMap.get(V2),
-        H[I1,I2] = B,
-        (I1 != I2 ->
-            B #=> A[I1],
-            B #=> A[I2]
-        ;
-            true
-        )
-    end,
-    foreach (I in 1..N, J in 1..N)
-        Cell = H[I,J], 
-        if var(Cell) && not dvar(Cell) then
-            Cell = 0
-        end
-    end,
-    foreach (I in 1..N)                              % each vertex has exactly one incoming and one outgoing edge
-        TmpB #\/ #~A[I] #\/ #~KGt1,                 
-        TmpB #=> sum([H[I,J] : J in 1..N, J !== I]) #= 1,
-        TmpB #=> sum([H[J,I] : J in 1..N, J !== I]) #= 1        
-    end,
-     % ban sub-cycles
-    hcp_scc_choose_start(A,N,KGt1,MinK,Start),       % Start[I] = 1 iff the cycle starts at vertex I
-    DistA = new_array(N),                             % each in-cycle vertex has a unique distance from the start
-    DistA :: 0..MaxK-1,
-    foreach (I in 1..N)
-        Start[I] #=> DistA[I] #= 0,
-        Neibs = AdjMap.get(I,[]),
-        foreach (J in Neibs, H[I,J] !== 0)
-            if I < J then
-                #~KGt2 #\/ #~H[I,J] #\/ #~H[J,I]    % no cycle of size 2
-            end,
-            #~Start[J] #/\ H[I,J] #=>  DistA[J] #= DistA[I]+1
-        end
-    end.
 
 %
 % Start and HasStarted must follow the following pattern:
@@ -666,6 +849,7 @@ acyclic_d(Vs,Es) =>
     check_graph_vs(Vs, acyclic_d),
     check_graph_es(Es, acyclic_d),
     N = len(Vs),
+%    printf("|Vs| = %w\n", N),
     VMap = new_map(),
     DegMap = new_map(),
     foreach({V,B} in Vs)
@@ -674,40 +858,47 @@ acyclic_d(Vs,Es) =>
         DegMap.put(V, 0)
     end,
     %
-    VEMap = new_map(),
     EMap = new_map(),
     foreach({V1,V2,B} in Es)
         B :: 0..1,    
         Key = (V1,V2),
+        Bv1 = VMap.get(V1),
+        Bv2 = VMap.get(V2),
+        B #=> Bv1,
+        B #=> Bv2,    
         if V1 == V2 then
             #~B        
-        end,
-        if not VEMap.has_key(Key) then
-            VEMap.put(Key, B),
-            DegMap.put(V1, DegMap.get(V1)+1),
-            DegMap.put(V2, DegMap.get(V2)+1)
+        else
+            if not EMap.has_key(Key) then
+                EMap.put(Key, B),
+                DegMap.put(V1, DegMap.get(V1)+1),
+                DegMap.put(V2, DegMap.get(V2)+1)
+            end
         end
     end,
     RVs = [V : {V,_} in Vs],
-    Tmp = to_int(2.3*size(VEMap)),
-    if Tmp > 30*N then
-        Threshold = 30*N
-    else
-        Threshold = Tmp
+%    printf("|Es| = %w \n", size(EMap)),
+    
+    EN = 2.3*size(EMap),
+    if EN > 30*N then
+    EN:=30*N
     end,
-    acyclic_vertex_elimination(VMap, DegMap, VEMap, EMap, Threshold, RVs).
+    
+    AddedEMap = new_map(),
+    vertex_elimination(VMap, DegMap, EMap, AddedEMap, EN, RVs).
 
-acyclic_vertex_elimination(VMap, DegMap,  VEMap, EMap, Threshold, [])  => true.
-acyclic_vertex_elimination(VMap, DegMap,  VEMap, EMap, Threshold, [_]) => true.
-acyclic_vertex_elimination(VMap, DegMap,  VEMap, EMap, Threshold, Vs@[FirstV|RVs]) =>
+vertex_elimination(VMap, DegMap,  EMap, AddedEMap, EN, [])  => true.
+vertex_elimination(VMap, DegMap,  EMap, AddedEMap, EN, [_]) => true.
+vertex_elimination(VMap, DegMap,  EMap, AddedEMap, EN, Vs@[FirstV|RVs]) =>
     choose_vertex_to_cut(DegMap, FirstV, DegMap.get(FirstV), RVs, W, RVs1),
-    if  size(VEMap) > Threshold then
+    if  EN < size(EMap) then
         VBs = [{V,B} : V in Vs, B = VMap.get(V)],
-        EBs = [{V1,V2,B} : V1 in Vs, V2 in Vs,  Key = (V1,V2), VEMap.has_key(Key), B = VEMap.get(Key)],
+%        printf("switching to LEE encoding: EN is %w\n", size(EMap)),
+        EBs = [{V1,V2,B} : V1 in Vs, V2 in Vs,  Key = (V1,V2), EMap.has_key(Key), B = EMap.get(Key)],
         acyclic_lee_b(VBs,EBs)
     else
-        InNeibs = [V: V in RVs1, VEMap.has_key((V,W))],
-        OutNeibs = [V: V in RVs1, VEMap.has_key((W,V))],
+        InNeibs = [V: V in RVs1, EMap.has_key((V,W))],
+        OutNeibs = [V: V in RVs1, EMap.has_key((W,V))],
 
         foreach(X in InNeibs)
             DegMap.put(X, DegMap.get(X)-1)
@@ -715,29 +906,40 @@ acyclic_vertex_elimination(VMap, DegMap,  VEMap, EMap, Threshold, Vs@[FirstV|RVs
 
         foreach(Y in OutNeibs)
             DegMap.put(Y, DegMap.get(Y)-1),
-            Key1 = (W,Y),            
-            Key2 = (Y,W),
+            Pwy = (W,Y),            
+            Pyw = (Y,W),
 
-            if VEMap.has_key(Key2) then            
-                B1 = VEMap.get(Key1),
-                B2 = VEMap.get(Key2),
+            if EMap.has_key(Pyw) then            
+                B1 = EMap.get(Pwy),
+                B2 = EMap.get(Pyw),
                 #~B1 #\/ #~B2
             end
         end,
         
         foreach(X in InNeibs, Y in OutNeibs, X !== Y)
-            if not VEMap.has_key((X,Y)) then
-                B1 :: 0..1,
-                DegMap.put(X, DegMap.get(X)+1),
-                DegMap.put(Y, DegMap.get(Y)+1),
-                VEMap.put((X,Y), B1)
+            Pxy = (X,Y),
+            if EMap.has_key(Pxy) then
+                if not AddedEMap.has_key(Pxy) then
+                    B1 :: 0..1,
+                    B0 = EMap.get(Pxy),
+                    AddedEMap.put(Pxy, B1),
+                    B0 #=> B1
+                end
+            else
+                if not AddedEMap.has_key(Pxy) then
+                    B1 :: 0..1,
+                    AddedEMap.put(Pxy, B1),
+                    DegMap.put(X, DegMap.get(X)+1),
+                    DegMap.put(Y, DegMap.get(Y)+1)
+                end
             end,
-            B1 =  VEMap.get((X,Y)),
-            B3 =  VEMap.get((X,W)),
-            B4 =  VEMap.get((W,Y)),
+            B1 = AddedEMap.get(Pxy),
+            EMap.put(Pxy, B1),
+            B3 =  EMap.get((X,W)),
+            B4 =  EMap.get((W,Y)),
             (B3 #/\ B4) #=> B1
         end,
-        acyclic_vertex_elimination(VMap, DegMap, VEMap, EMap, Threshold, RVs1)
+        vertex_elimination(VMap, DegMap, EMap, AddedEMap, EN, RVs1)
     end.
 
 % choose a vertex with the lowest degree    
@@ -753,6 +955,7 @@ choose_vertex_to_cut(DegMap, U, Du, [V|Vs], W, RVs),
 choose_vertex_to_cut(DegMap, U, Du, [V|Vs], W, RVs) =>
     RVs = [V|RVs1],
     choose_vertex_to_cut(DegMap, U, Du, Vs, W, RVs1).
+
 
 % use leaf-elimination encoding
 acyclic_lee_b(Vs,Es) =>
@@ -807,12 +1010,13 @@ acyclic_lee_b(Vs,Es,TMap) =>
 % AMap: adjacency map
 acyclic_lee_b_register_edge(V1,V2,B,VMap,AMap) =>
     Neibs1 = AMap.get(V1,[]),
-    AMap.put(V1,[(V2,B)|Neibs1]),
+    AMap.put(V1,[(V2,B)|Neibs1]).
+/*    
     B1 = VMap.get(V1),
     B2 = VMap.get(V2),
     B #=> B1,
     B #=> B2.
-
+*/
 acyclic_lee_b_constrain_neibs(V,Time,TMap,[]) => true.
 acyclic_lee_b_constrain_neibs(V,Time,TMap,[(V1,B1)|L]) =>
     Time1 = TMap.get(V1),
@@ -1023,7 +1227,7 @@ global_cardinality(List,Keys,Lows,Ups) =>
     global_cardinality(List,Keys,Cards),
     foreach ({Low,Up,Card} in zip(Lows,Ups,Cards))
         Low :: 0..N,
-	Up :: 0..N,
+    Up :: 0..N,
         Low #=< Card,
         Card #=< Up
     end.
@@ -1117,13 +1321,23 @@ at_least(N,X,V) =>
 % count(V,FDVars,Rel,N) => count(V,FDVars,Rel,N).
 count(V,FDVars,Rel,N) =>
     (array(FDVars) -> to_list(FDVars) = List; List = FDVars),
+    bp.length(List,Len),
+    (Rel == '#=' ->
+        bp.domain(N,0,Len)
+    ;Rel == '#>=' ->
+        N #=< Len
+    ; Rel == '#=<' ->
+        N #>= 0
+    ;
+        true
+    ),    
     bp.domain_min_max(N,MinN,_),
     (MinN > 0, Rel == '#=' ->
         bp.fd_min_max(List,LB,UB),
         bp.domain(V,LB,UB)
     ;
         true
-    ),    
+    ),
     reified_bool_vars(List,V,Bs),
     count_aux(Bs,Rel,N).
 

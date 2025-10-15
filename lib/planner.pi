@@ -135,7 +135,7 @@ best_plan_downward(S,Level,_Limit,_Plan,_PlanCost,_FinS) ?=>
     call_picat_plan(S,Level),
     fail.
 best_plan_downward(S,_Level,_Limit,Plan,PlanCost,FinS),
-    Map = get_table_map('_$planner'),
+    Map = get_global_map('_$planner'),
     Map.has_key($current_best_plan(S))
  =>
     Map.get($current_best_plan(S)) = Plan,
@@ -172,7 +172,7 @@ best_plan_bin(_S,Limit,Plan,PlanCost,_FinS) =>
 
 %%%
 best_plan_downward_bin(S,Level,Limit,Plan,PlanCost,FinS) =>
-    Map = get_table_map('_$planner'),
+    Map = get_global_map('_$planner'),
     loop_best_plan_downward_bin(S,Level,Limit,Plan,PlanCost,FinS,Map).
 
 loop_best_plan_downward_bin(S,Level,Limit,_Plan,_PlanCost,_FinS,_Map) ?=>
@@ -266,21 +266,24 @@ loop_best_plan_bb(S,Limit,Plan,PlanCost),
     (bp.global_get('_$picat_log',0, 1) -> printf("%% Searching with the bound %d\n",Limit); true),
     call_picat_plan(S,Limit)        
  =>
-    get_table_map('_$planner').get($current_best_plan_cost(S)) = PlanCost1,    
+    get_global_map('_$planner').get($current_best_plan_cost(S)) = PlanCost1,    
     loop_best_plan_bb(S,PlanCost1-1,Plan,PlanCost).
 loop_best_plan_bb(S,_Limit,Plan,PlanCost) =>
-    Map = get_table_map('_$planner'),
+    Map = get_global_map('_$planner'),
     Map.has_key($current_best_plan(S)),
     Map.get($current_best_plan(S)) = Plan,
     Map.get($current_best_plan_cost(S)) = PlanCost.
 
 call_picat_plan(S,Limit) =>
+    bp.c_INITIALIZE_TABLE(),
     bp.global_set('_$planner_explored_depth',0,268435455),
     not not call_picat_plan_aux(S,Limit).   % discard exception catchers created by picat_plan
 
 call_picat_plan_aux(S,Limit) =>
+%    println($call_picat_plan_aux(S,Limit)),
     bp.picat_plan(S,Limit,Plan,PlanCost,FinS),
-    Map = get_table_map('_$planner'),
+%    println($found(Plan,PlanCost)),
+    Map = get_global_map('_$planner'),
     Map.put($current_best_plan(S), Plan),
     Map.put($current_best_plan_cost(S), PlanCost),
     Map.put($current_best_plan_fin_state(S), FinS).

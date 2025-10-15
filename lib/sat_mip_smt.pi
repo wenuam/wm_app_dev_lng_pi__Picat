@@ -128,6 +128,7 @@ notin(Vars,Domain) =>
 table_notin(Vars,Tuples) =>
     bp.'$table_notin'(Vars,Tuples).
 
+
 /************************************************************************* 
 circuit(L): L is a list of variables X1,X2,...,Xn. An assignment
 {X1->a1,X2->a2,...,Xn->an} satisfies this constraint if it forms a Hamilton cycle. 
@@ -135,180 +136,53 @@ To be more specific, each variable has a different value and no sub-cycles can b
 formed.  For example, for the constraint circult([X1,X2,X3,X4]), 
 [3,4,2,1] is a solution, but [2,1,4,3] is not because it contains sub-cycles.
 *************************************************************************/
-circuit(L), list(L) =>
-    A = to_array(L),
-    circuit_aux(A).
-circuit(A), array(A) =>
-    circuit_aux(A).
+circuit(List), array(List) =>
+    circuit(to_list(List)).
+circuit(List), list(List) =>
+    LB = min([fd_min(V) : V in List]),
+    if LB !== 1 then
+        transform_circuit_aux(List,List1,LB),
+        circuit_hybrid_aux(List1)
+    else
+        circuit_hybrid_aux(List)
+    end.
 circuit(L) =>
     handle_exception($array_or_list_expected(L), circuit).
 
-circuit_aux({V}) => V = 1.
-circuit_aux(A) =>                             % single-agent path finding
-    N = length(A),
-    A :: 1..N,
-    foreach (I in 1..N)                       % not reflexive
-        bp.domain_set_false(A[I],I)
-    end,
-    circuit_init_adj_matrix(H,A,N,NeibVect,TNeibVect),
-    
-    H :: 0..1,
-    foreach (I in 1..N, J in 1..N, I !== J)   % channel
-        if H[I,J] !== 0 then
-            H[I, J] #<=> (A[I] #= J),
-            if N > 2 then
-                #~H[I,J] #\/ #~H[J,I]
-            end
-        end
-    end,
-    foreach (I in 1..N)                       
-        sum([H[J,I] : J in 1..N]) #= 1         % each node has exactly one incoming edge
-    end,
+circuit_hybrid_aux(L) =>
+    N = len(L),
+    L :: 1..N,
+    Vs = [{I,1} : I in 1..N],
+    Es = [{I,J,B} : I in 1..N, 
+                    J in fd_dom(L[I]), 
+                    J !== I, 
+                    B #<=> L[I] #= J],
+     hcp_hybrid(Vs,Es).
 
-    circuit_choose_start(A,1, fd_size(A[1]), Start,1,N),
-     % ban sub-cycles
-    P = new_array(N),                          % P[I] is node I's position
-    P[Start] = 1,
-    P :: 1..N,
-    circuit_preprocess(N,P,Start,NeibVect,TNeibVect),
-     %
-    foreach (I in 1..N, I !== Start)
-        H[Start,I] #=> P[I] #= 2,         % H[Start,I] -> I is the successor of Start
-        H[I, Start] #=> (P[I] #= N)        % H[I,Start] -> I is visited at time N
-    end,
-     % if edge (I,J) is in, then J's position is the successor of I's position
-    foreach (I in 1..N, I !== Start, J in 1..N, J !== Start, H[I,J] !== 0)
-        H[I,J] #=> P[J] #= P[I]+1
-    end.
 
-% H is the adjacent matrix representation of a Hamilton cycle in graph A
-% set H[I,J] = 0 if (I,J) is not an edge in graph A
-circuit_init_adj_matrix(H,A,N,NeibVect,TNeibVect) =>
-    H = new_array(N,N),                         % H[I,J] = 1 iff (I,J) an edge in the Hamilton cycle
-    NeibVect = new_array(N),                    % adjacency list
-    TNeibVect = new_array(N),                   % adjacency list of the transpose graph
-    foreach (I in 1..N, J in 1..N)              % H is a subgraph of A
-        if fd_true(A[I],J) then
-            true
-        else
-            H[I,J] = 0
-        end
-    end,
-    foreach (I in 1..N)
-        NeibVect[I] = [J : J in 1..N, H[I,J] !== 0],
-        TNeibVect[I] = [J : J in 1..N, H[J,I] !== 0]
-    end.
+/************************************************************************* 
+subcircuit(L):  L is a list or an array of variables X1,X2,...,Xn.
+L forms a subcircuit where Xi = j (j \= i) means that j is the successor of i 
+and Xi = i means that i is not in the circuit. No sub-cycles are allowed.
+*************************************************************************/
+subcircuit(L), list(L) =>
+    subcircuit_hybrid(L).
+subcircuit(A), array(A) =>
+    subcircuit_hybrid(to_list(A)).
+subcircuit(L) =>
+    handle_exception($array_or_list_expected(L), subcircuit).
 
-% choose a node that has the smallest out-degree to start with
-circuit_choose_start(_A,CurIndex,_CurDeg,BestIndex,I,N), I > N => BestIndex = CurIndex.
-circuit_choose_start(A,CurIndex,CurDeg,BestIndex,I,N) =>
-    X = A[I],
-    Deg = fd_size(X),
-    (Deg < CurDeg ->
-        CurIndex1 = I,
-        CurDeg1 = Deg
-    ;
-        CurIndex1 = CurIndex,
-        CurDeg1 = CurDeg
-    ),
-    circuit_choose_start(A,CurIndex1,CurDeg1,BestIndex,I+1,N).
+subcircuit_hybrid(L) =>
+     N = len(L),
+     L :: 1..N,
+     Vs = [{I,B} : I in 1..N, 
+                   B #<=> L[I] #!= I],
+     Es = [{I,J,B} : I in 1..N, 
+                   J in fd_dom(L[I]), 
+                   J !== I, 
+                   B #<=> L[I] #= J],
+     hcp_hybrid(Vs,Es).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Shortest-distance heuristic: For a node, let D0 be the shortest distance to
-% it from Start. Then the node cannot be reached at times 1,..., D0, because
-% Start is visited at time 1. Likewise, let D1 be the shortest distance from
-% the node to Start. Then the node cannot be visited at times (N-D1+2)..N.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-circuit_preprocess(N,P,Start,NeibVect,TNeibVect) =>
-    (NeibVect == TNeibVect -> Undirected = 1; Undirected = 0),
-    circuit_reason_forward(Start,[Start],1,NeibVect,P,1,N,Done),
-    circuit_reason_backward(Start,[Start],1,TNeibVect,P,N+1,N,Undirected,Done),
-    if Done == 0 then     % some frontiers are too large to expand, so use the shortest-distance heuristic
-        circuit_shortest_distance0(Start,N,NeibVect,SDFromStart),
-        circuit_shortest_distance0(Start,N,TNeibVect,SDToStart),
-        foreach (I in 1..N, I !== Start)
-            foreach (T in 1..SDFromStart[I])
-                bp.domain_set_false(P[I], T)
-            end,
-            foreach (T in (N-SDToStart[I]+2)..N)
-                bp.domain_set_false(P[I], T)
-            end
-        end
-    end.
-    
-circuit_shortest_distance0(Start,N,NeibVect,DistVect) =>
-    DistVect = new_array(N),                                % DistVect[I], the shortest distance from Start to node I
-    foreach (I in 1..N)
-        DistVect[I] = N
-    end,      
-    DistVect[Start] := 0,
-    MinHeap1 = new_min_heap([[0|Start]]),
-    circuit_shortest_distance(MinHeap1,N,NeibVect,DistVect).
-
-% Dijkstra's algorithm
-circuit_shortest_distance(MinHeap,_N,_NeibVect,_DistVect), heap_is_empty(MinHeap) => true.
-circuit_shortest_distance(MinHeap,N,NeibVect,DistVect) =>
-    [Dist|Node] = heap_pop(MinHeap),
-    Dist1 = Dist+1,
-    foreach (Neib in NeibVect[Node])
-        if (DistVect[Neib] =< Dist1) then
-            true
-        else
-            heap_push(MinHeap,[Dist1|Neib]),
-            DistVect[Neib] := Dist1
-        end
-    end,
-    circuit_shortest_distance(MinHeap,N,NeibVect,DistVect).
-
-%% When expanding forward, the first frontier is [Start] at time 1. After expanding Front, Font1 becomes the new frontier.
-%% Assume the agent is in a state in Front at time T. Then, it will be in a state in Front1 at time T+1.
-circuit_reason_forward(Start,Front,FrontSize,NeibVect,P,T,N,Done) =>
-    (T == N ->
-        true
-    ; FrontSize =< 512, FrontSize < N-1 ->
-        T1 is T+1,
-        circuit_expand(Start,NeibVect,Front,Front1),
-        circuit_exclude_unreachable(1,N,Front1,P,T1),
-        circuit_reason_forward(Start,Front1, len(Front1), NeibVect,P,T1,N,Done)
-    ; 
-        Done = 0
-    ).
-
-%% When expanding backward, the first frontier is [Start] at time N+1
-circuit_reason_backward(Start,Front,FrontSize,TNeibVect,P,T,N,Undirected,Done) =>
-    (T == 2 ->
-        true
-    ; FrontSize =< 512, FrontSize < N-1 ->
-        T1 is T-1,
-        circuit_expand(Start,TNeibVect,Front,Front1),
-        circuit_exclude_unreachable(1,N,Front1,P,T1),
-        FrontSize1 = len(Front1),        
-        if FrontSize1 == 2 && Undirected == 1 then     % the distance to Start is N-T1+1
-            Front1 = [X1,X2],                          % visit one at time N-T1+2 and visit the other at time T1
-            foreach (TT in N-T1+3..T1-1)
-                bp.domain_set_false(P[X1],TT),
-                bp.domain_set_false(P[X2],TT)
-            end
-        end,
-        circuit_reason_backward(Start,Front1,FrontSize1,TNeibVect,P,T1,N,Undirected,Done)
-    ;
-        Done = 0
-    ).
-
-% Expand Front to yield the next frontier Front1.
-circuit_expand(Start,NeibVect,Front,Front1) =>
-    TmpFront = [J : I in Front, J in NeibVect[I], J !== Start],
-    Front1 = sort_remove_dups(TmpFront).
-
-% for each E in 1..Max that is not included in Dom, E cannot be mapped to position Pos
-circuit_exclude_unreachable(E,Max,_Dom,_P,_Pos), E > Max => true.
-circuit_exclude_unreachable(E,Max,[E|Dom],P,Pos) =>
-    circuit_exclude_unreachable(E+1,Max,Dom,P,Pos).
-circuit_exclude_unreachable(E,Max,[Ed|Dom],P,Pos), E > Ed =>
-    circuit_exclude_unreachable(E,Max,Dom,P,Pos).
-circuit_exclude_unreachable(E,Max,Dom,P,Pos) =>
-    bp.domain_set_false(P[E],Pos),
-    circuit_exclude_unreachable(E+1,Max,Dom,P,Pos).
 
 fzn_circuit(List), array(List) =>
     fzn_circuit(to_list(List)).

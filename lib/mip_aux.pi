@@ -200,10 +200,11 @@ mip_dump(OStream,Fmt,Sense,ObjTerms,Vars,Constrs) =>
     ObjCoeCls = [(Coe, ColNo) : (Coe,Var) in ObjTerms,
                                 bp.get_attr(Var,'$lp',T),
                                T = $'$lp_x'(ColNo,_IsInt,_L,_U,_Constrs)],
-    mip_dump_aux(OStream,Fmt,Sense,ObjCoeCls,Vars,Constrs).
+    mip_dump_aux(OStream,Fmt,Sense,ObjCoeCls,Vars,Constrs),
+    writeln('Done').
 
 mip_dump_aux(OStream,lp,Sense,ObjCoeCls,Vars,Constrs) =>
-    mip_dump_lp_obj(OStream,Sense,ObjCoeCls),        
+    mip_dump_lp_obj(OStream,Sense,ObjCoeCls),
     mip_dump_lp_constrs(OStream,Constrs),
     mip_dump_lp_domains(OStream,Vars,ObjCoeCls),
     println(OStream,'End').
@@ -618,9 +619,11 @@ scip_post_constr_coes([(Coe,ColNo)|CoeCls],ConstrNum) =>
     scip_post_constr_coes(CoeCls,ConstrNum).
 
 scip_return_binding([],Sol) => true.
-scip_return_binding([Var|Vars],Sol), var(Var) =>
-    bp.get_attr(Var,'$lp',T),
+scip_return_binding([Var|Vars],Sol), var(Var), bp.get_attr(Var,'$lp',T) =>
     T = $'$lp_x'(ColNo,_IsInt,_Low,_Up,_),
+%    arg(ColNo+1, Sol, Tmp),
+%    println(T),
+%    println(Var = Tmp),
     arg(ColNo+1, Sol, Var),
     scip_return_binding(Vars,Sol).
 scip_return_binding([_|Vars],Sol) =>
