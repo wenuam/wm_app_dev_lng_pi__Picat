@@ -106,10 +106,10 @@ import common_constr, mip_aux.
 '#~'(X) => bp.'$\\'(X).
 
 % fd_disjoint(DVar1,DVar2) => fd_disjoint(DVar1,DVar2).
-fd_disjoint(DVar1,DVar2),dvar_or_int(DVar1),dvar_or_int(DVar2) => bp.b_DM_DISJOINT_cc(DVar1,DVar2).
+fd_disjoint(DVar1,DVar2), dvar_or_int(DVar1), dvar_or_int(DVar2) => bp.b_DM_DISJOINT_cc(DVar1,DVar2).
 fd_disjoint(DVar1,DVar2) =>
-    Source=fd_disjoint,
-    (dvar_or_int(DVar1) -> handle_exception($dvar_expected(DVar2),Source);handle_exception($dvar_expected(DVar1),Source)).
+    Source = fd_disjoint,
+    (dvar_or_int(DVar1) -> handle_exception($dvar_expected(DVar2), Source); handle_exception($dvar_expected(DVar1), Source)).
 
 % solve(Vars) => solve(Vars).
 solve(Vars) => solve([],Vars).
@@ -121,7 +121,7 @@ solve(Options,Vars) =>
 solve_all(Vars) = solve_all([],Vars).
 
 solve_all(Options,Vars) =
-    findall(Vars,solve(Options,Vars)).
+    findall(Vars, solve(Options,Vars)).
 
 %%%%%%%%%%%%%%%%%%%%%%%% common to cp, mip, and sat modules %%%%%%%%%%%%%%%%%%%%%%
 % new_fd_var() = new_fd_var().
@@ -136,47 +136,45 @@ notin(Vars,Domain) =>
     bp.'_$_picat_notin'(mip,Vars,Domain).
 
 % fd_dom(FDVar) = fd_dom(FDVar).
-fd_dom(FDVar) = List,integer(FDVar) => List=[FDVar].
-fd_dom(FDVar) = List, dvar(FDVar) => bp.domain_min_max(FDVar,Min,Max),bp.fd_domain(FDVar,List,Min,Max).
+fd_dom(FDVar) = List, integer(FDVar) => List = [FDVar].
+fd_dom(FDVar) = List, dvar(FDVar) => bp.domain_min_max(FDVar,Min,Max), bp.fd_domain(FDVar,List,Min,Max).
 fd_dom(FDVar) = _List => 
-    handle_exception($dvar_expected(FDVar),fd_dom).
+    handle_exception($dvar_expected(FDVar), fd_dom).
 
 % fd_false(FDVar,Elm) => fd_false(FDVar,Elm).
 fd_false(FDVar,Elm),
     dvar_or_int(FDVar),
     integer(Elm)
-=>
+ =>
     bp.b_DM_FALSE_cc(FDVar,Elm).
 fd_false(FDVar,Elm) =>
     bp.expect_dvar_int(FDVar,Elm,fd_false).
 
 % fd_max(FDVar) = fd_max(FDVar).
-fd_max(FDVar) = Max => (dvar_or_int(FDVar)->bp.domain_min_max(FDVar,_,Max);handle_exception($dvar_expected(FDVar),fd_max)).
+fd_max(VarOrVars) = Max =>
+    bp.fd_min_max(VarOrVars,_,Max).
 
 % fd_min(FDVar) = fd_min(FDVar).
-fd_min(FDVar) = Min => (dvar_or_int(FDVar)->bp.domain_min_max(FDVar,Min,_);handle_exception($dvar_expected(FDVar),fd_min)).
+fd_min(VarOrVars) = Min =>
+    bp.fd_min_max(VarOrVars,Min,_).    
 
 % fd_min_max(FDVar,Min,Max) => fd_min_max(FDVar,Min,Max).
-fd_min_max(FDVar,Min,Max) => 
-    (dvar_or_int(FDVar)->
-    bp.domain_min_max(FDVar,Min,Max)
-    ;
-        handle_exception($dvar_expected(FDVar),fd_min_max)
-    ).
+fd_min_max(VarOrVars,Min,Max) =>
+    bp.fd_min_max(VarOrVars,Min,Max).
 
 % fd_next(FDVar,Elm) = fd_next(FDVar,Elm).
 fd_next(FDVar,Elm) = NextElm, 
     dvar(FDVar), integer(Elm) 
-=>
-    (bp.domain_next_inst(FDVar,Elm,NextElm) -> true; handle_exception(failed,fd_next)).
+ =>
+    (bp.domain_next_inst(FDVar,Elm, NextElm) -> true; handle_exception(failed,fd_next)).
 fd_next(FDVar,Elm) = _NextElm =>
     bp.expect_dvar_int(FDVar,Elm,fd_next).
 
 % fd_prev(FDVar,Elm) = fd_prev(FDVar,Elm).
 fd_prev(FDVar,Elm) = PrevElm,
     dvar(FDVar), integer(Elm) 
-=>
-    (bp.b_DM_PREV_ccf(FDVar,Elm,PrevElm) -> true; handle_exception(failed,fd_prev)).
+ =>
+    (bp.b_DM_PREV_ccf(FDVar,Elm, PrevElm) -> true; handle_exception(failed,fd_prev)).
 fd_prev(FDVar,Elm) = _PrevElm =>
     bp.expect_dvar_int(FDVar,Elm,fd_prev).
 
@@ -184,17 +182,17 @@ fd_prev(FDVar,Elm) = _PrevElm =>
 fd_size(FDVar) = Size =>
     (dvar(FDVar) -> 
     bp.b_DM_COUNT_cf(FDVar,Size)
-    ;integer(FDVar) ->
-        Size=1
+    ; integer(FDVar) ->
+        Size = 1
     ;
-        handle_exception($dvar_expected(FDVar),fd_size)
+        handle_exception($dvar_expected(FDVar), fd_size)
     ).
     
 % fd_true(FDVar,Elm) => fd_true(FDVar,Elm).
 fd_true(FDVar,Elm),
     dvar_or_int(FDVar),
     integer(Elm)
-=>
+ =>
     bp.b_DM_TRUE_cc(FDVar,Elm).
 fd_true(FDVar,Elm) =>
     bp.expect_dvar_int(FDVar,Elm,fd_true).
@@ -213,7 +211,7 @@ all_different(FDVars), list(FDVars) =>
     Arr = to_array(FDVars),
     alldifferent_aux(Arr).
 all_different(FDVars) =>
-    handle_exception($list_or_array_expected(FDVars),all_different).
+    handle_exception($list_or_array_expected(FDVars), all_different).
 
 alldifferent_aux(Arr) =>
     N = len(Arr),
@@ -222,14 +220,24 @@ alldifferent_aux(Arr) =>
     end.
 
 %
-% Requires that all non-zero values in Xs be distinct.
-% the same as sat module's definition
+% Requires that all non-zero values in Xs are distinct.
 %
 alldifferent_except_0(Xs) =>
     all_different_except_0(Xs).
 
 all_different_except_0(Xs) =>
-    foreach(I in 1..Xs.length, J in 1..I-1)
+    (list(Xs) ->
+        Arr = to_array(Xs)
+    ;array(Xs) ->
+        Arr = Xs
+    ;
+        handle_exception($dvar_or_int_collection_expected(Xs), all_different_except_0)
+    ),
+    all_different_except_0_aux(Arr).
+
+all_different_except_0_aux(Xs) =>
+    N = len(Xs),
+    foreach(I in 1..N-1, J in I+1..N)
         Xs[I] #= 0 #\/ Xs[J] #= 0 #\/ Xs[I] #!= Xs[J]
     end.
 
@@ -275,26 +283,26 @@ scalar_product(A, X, '#<', Product) =>
 %
 % exactly(?N,?X,?V)
 %
-% Requires that exactly N variables in X takes the value V.
+% Requires that exactly N variables in X take the value V.
 %
 exactly(N, X, V) =>
-  count(V,X,#=,N).
+  count(V,X, #= ,N).
 
 %
 % at_most(?N,?X,?V)
 %
-% Requires that atmost N variables in X takes the value V.
+% Requires that atmost N variables in X take the value V.
 %
 at_most(N,X,V) => 
-  count(V,X,#=<,N).
+  count(V,X, #=< ,N).
 
 %
 % at_least(?N,?X,?V)
 %
-% Requires that atleast N variables in X takes the value V.
+% Requires that atleast N variables in X take the value V.
 %
 at_least(N,X,V) => 
-  count(V,X,#>=,N).
+  count(V,X, #>= ,N).
 
 % assignment(FDVars1,FDVars2) => assignment(FDVars1,FDVars2).
 % the same as sat module's definition
@@ -315,30 +323,30 @@ formed.  For example, for the constraint circult([X1,X2,X3,X4]),
 [3,4,2,1] is a solution, but [2,1,4,3] is not because it contains sub-cycles.
 % the same as sat module's definition
 *************************************************************************/
-circuit(L),list(L) =>
+circuit(L), list(L) =>
     A = to_array(L),
     circuit_aux(A).
-circuit(A),array(A) =>
+circuit(A), array(A) =>
     circuit_aux(A).
 circuit(L) =>
-    handle_exception($array_or_list_expected(L),circuit).
+    handle_exception($array_or_list_expected(L), circuit).
 
 circuit_aux(A) =>
-    N=length(A),
+    N = length(A),
     A :: 1..N,
     M = new_array(N,N),
-    foreach(I in 1..N) M[I,I] = 0 end,          % not reflexive
+    foreach(I in 1..N) M[I,I] = 0 end,           % not reflexive
     M :: 0..1,
     foreach(I in 1..N, J in 1..N, I !== J)
-        M[I,J] #<=> (A[I] #= J)
+        M[I, J] #<=> (A[I] #= J)
     end,
-    foreach (J in 1..N)                         % all_different(A)
+    foreach (J in 1..N)                          % all_different(A)
         sum([M[I,J] : I in 1..N]) #= 1,
         sum([M[J,I] : I in 1..N]) #= 1        
     end,
-    %
-    OrderM = new_array(N,N),                    % order the nodes, starting at 1, then A[1], ...
-    foreach(I in 1..N) OrderM[I,I] = 0 end,     % not reflexive
+     %
+    OrderM = new_array(N,N),                     % order the nodes, starting at 1, then A[1], ...
+    foreach(I in 1..N) OrderM[I,I] = 0 end,      % not reflexive
     foreach (I in 2..N)
         OrderM[1,I] = 1,
         OrderM[I,1] = 0
@@ -349,7 +357,7 @@ circuit_aux(A) =>
         M[I,1] #=> OrderM[J,I],
         M[I,J] #=> OrderM[I,J],
         OrderM[I,J]+OrderM[J,I] #= 1,
-        foreach (K in 2..N, K !== I, K !== J)   % transitive
+        foreach (K in 2..N, K !== I, K !== J)    % transitive
             OrderM[I,K] #/\ OrderM[K,J] #=> OrderM[I,J]
         end
     end.
@@ -359,32 +367,32 @@ subcircuit(L):  L is a list or an array of variables X1,X2,...,Xn.
 L forms a subcircuit where Xi = j (j \= i) means that j is the successor of i 
 and Xi = i means that i is not in the circuit. No sub-cycles are allowed.
 *************************************************************************/
-subcircuit(L),list(L) =>
+subcircuit(L), list(L) =>
     subcircuit_aux(L.to_array()).
-subcircuit(A),array(A) =>
+subcircuit(A), array(A) =>
     subcircuit_aux(A).
 subcircuit(L) =>
-    handle_exception($array_or_list_expected(L),subcircuit).
+    handle_exception($array_or_list_expected(L), subcircuit).
 
 subcircuit_aux(A) =>
     A.length = N,
     A :: 1..N,
-    M = new_array(N,N),                         % M[I,I] = 1 means node I is not in the circuit
+    M = new_array(N,N),                          % M[I,I] = 1 means node I is not in the circuit
     M :: 0..1,
     foreach(I in 1..N, J in 1..N)
-        M[I,J] #<=> (A[I] #= J)
+        M[I, J] #<=> (A[I] #= J)
     end,
-    foreach (J in 1..N)                         % all_different(A)
+    foreach (J in 1..N)                          % all_different(A)
         sum([M[I,J] : I in 1..N]) #= 1,
         sum([M[J,I] : I in 1..N]) #= 1        
     end,
-    %
+     %
     FirstIn = new_array(N),                     
     FirstIn :: 0..1,
-    sum(FirstIn) #=< 1,                         % no node is first if the circuit is empty
-    %
-    OrderM = new_array(N,N),                    % order the nodes in the circuit, starting at I for which FirstIn[I]=1
-    foreach(I in 1..N) OrderM[I,I] = 0 end,     % not reflexive
+    sum(FirstIn) #=< 1,                          % no node is first if the circuit is empty
+     %
+    OrderM = new_array(N,N),                     % order the nodes in the circuit, starting at I for which FirstIn[I]=1
+    foreach(I in 1..N) OrderM[I,I] = 0 end,      % not reflexive
     OrderM :: 0..1,
     foreach (I in 1..N)
         FirstIn[I] #=> #~ M[I,I],
@@ -402,44 +410,44 @@ subcircuit_aux(A) =>
 % the same as sat module's definition
 %
 count(V,FDVars,Rel,N) =>
-    (array(FDVars) -> to_list(FDVars)=List; List=FDVars),
+    (array(FDVars) -> to_list(FDVars) = List; List = FDVars),
     reified_bool_vars(List,V,Bs),
     count_aux(Bs,Rel,N).
 
-reified_bool_vars([],_V,Bs) => Bs=[].
+reified_bool_vars([],_V,Bs) => Bs = [].
 reified_bool_vars([E|List],V,Bs) =>
     Bs = [B|BsR],
     B #<=> (V #= E),
     reified_bool_vars(List,V,BsR).
 
-count_aux(Bs,'#=',N) => sum(Bs) #= N.
-count_aux(Bs,'#!=',N) => sum(Bs) #!= N.
-count_aux(Bs,'#\\=',N) => sum(Bs) #!= N.
-count_aux(Bs,'#>',N) => sum(Bs) #> N.
-count_aux(Bs,'#>=',N) => sum(Bs) #>= N.
-count_aux(Bs,'#<',N) => sum(Bs) #< N.
-count_aux(Bs,'#=<',N) => sum(Bs) #=< N.
-count_aux(Bs,'#<=',N) => sum(Bs) #=< N.
+count_aux(Bs,'#=', N) => sum(Bs) #= N.
+count_aux(Bs,'#!=', N) => sum(Bs) #!= N.
+count_aux(Bs,'#\\=', N) => sum(Bs) #!= N.
+count_aux(Bs,'#>', N) => sum(Bs) #> N.
+count_aux(Bs,'#>=', N) => sum(Bs) #>= N.
+count_aux(Bs,'#<', N) => sum(Bs) #< N.
+count_aux(Bs,'#=<', N) => sum(Bs) #=< N.
+count_aux(Bs,'#<=', N) => sum(Bs) #=< N.
 
 count(V,FDVars,N) =>
     count(V,FDVars,'#=',N).
 
 % cumulative(Starts,Durations,Resources,Limit) => cumulative(Starts,Durations,Resources,Limit).
 cumulative(Starts,Durations,Resources,Limit) =>
-    (array(Starts) -> to_list(Starts)=SList; SList=Starts),    
-    (array(Durations) -> to_list(Durations)=DList; DList=Durations),    
-    (array(Resources) -> to_list(Resources)=RList; RList=Resources),
+    (array(Starts) -> to_list(Starts) = SList; SList = Starts),    
+    (array(Durations) -> to_list(Durations) = DList; DList = Durations),    
+    (array(Resources) -> to_list(Resources) = RList; RList = Resources),
     bp.bp_cumulative(SList,DList,RList,Limit,mip).
 
 %
 % Ensure that FDVars is decreasing
 %
-decreasing(FDVars),array(FDVars) =>
+decreasing(FDVars), array(FDVars) =>
    foreach(I in 2..length(FDVars)) FDVars[I-1] #>= FDVars[I] end.
-decreasing(FDVars),list(FDVars) =>
+decreasing(FDVars), list(FDVars) =>
    decreasing_list(FDVars).
 decreasing(FDVars) =>
-   handle_exception($list_or_array_expected(FDVars),decreasing).
+   handle_exception($list_or_array_expected(FDVars), decreasing).
 
 decreasing_list([]) => true.
 decreasing_list([_]) => true.
@@ -447,12 +455,12 @@ decreasing_list([X|T@[Y|_]]) =>
     X #>= Y,
     decreasing_list(T).
 
-decreasing_strict(FDVars),array(FDVars) =>
+decreasing_strict(FDVars), array(FDVars) =>
    foreach(I in 2..length(FDVars)) FDVars[I-1] #> FDVars[I] end.
-decreasing_strict(FDVars),list(FDVars) =>
+decreasing_strict(FDVars), list(FDVars) =>
    decreasing_strict_list(FDVars).
 decreasing_strict(FDVars) =>
-   handle_exception($list_or_array_expected(FDVars),decreasing_strict).
+   handle_exception($list_or_array_expected(FDVars), decreasing_strict).
 
 decreasing_strict_list([]) => true.
 decreasing_strict_list([_]) => true.
@@ -462,12 +470,12 @@ decreasing_strict_list([X|T@[Y|_]]) =>
 
 % diffn(RectangleList) => diffn(RectangleList).
 diffn(RectangleList) =>
-    (array(RectangleList) -> to_list(RectangleList)=RList; RList=RectangleList),
+    (array(RectangleList) -> to_list(RectangleList) = RList; RList = RectangleList),
     bp.bp_diffn(RList,mip).
 
 % disjunctive_tasks(Tasks) => disjunctive_tasks(Tasks).
 disjunctive_tasks(Tasks) =>
-    (array(Tasks) -> to_list(Tasks)=TList; TList=Tasks),    
+    (array(Tasks) -> to_list(Tasks) = TList; TList = Tasks),    
     disjunctive_tasks_aux(TList).
 
 disjunctive_tasks_aux([]) => true.
@@ -475,16 +483,23 @@ disjunctive_tasks_aux([disj_tasks(S1,D1,S2,D2)|Tasks]) =>
     S1+D1 #=< S2 #\/ S2+D2 #=< S1,
     disjunctive_tasks_aux(Tasks).
 disjunctive_tasks_aux(Tasks) =>
-    handle_exception($invalid_tasks(Tasks),disjunctive_tasks).
+    handle_exception($invalid_tasks(Tasks), disjunctive_tasks).
 
 % element(I,FDVars,V) => element(I,FDVars,V).
 element(I,FDVars,V) =>
-    (array(FDVars) -> to_list(FDVars)=List; List=FDVars),
-    (bp.dvar_or_int_list(List) -> true; handle_exception($dvar_or_int_list_expected(List),element)),
+    (array(FDVars) -> to_list(FDVars) = List; List = FDVars),
+    (bp.dvar_or_int_list(List) -> true; handle_exception($dvar_or_int_list_expected(List), element)),
     bp.'$element'(I,List,V,mip).
 
+% 0-based indexing
+% element0(I,FDVars,V) => element0(I,FDVars,V).
+element0(I,FDVars,V) =>
+    (array(FDVars) -> to_list(FDVars) = List; List = FDVars),
+    (bp.dvar_or_int_list(List) -> true; handle_exception($dvar_or_int_list_expected(List), element)),
+    bp.'$element0'(I,List,V,mip).
+
 global_cardinality(List,Pairs) =>
-    (bp.check_pairs(Pairs) -> true; handle_exception($pairs_expected(Pairs),global_cardinality)),
+    (bp.check_pairs(Pairs) -> true; handle_exception($pairs_expected(Pairs), global_cardinality)),
     N = len(List),
     Cards = [Card : $(_-Card) in Pairs],
     (bp.dvar_or_int_list(Cards) ->
@@ -501,18 +516,18 @@ global_cardinality(List,Pairs) =>
         true
     ),
     foreach($(Key-Card) in Pairs) 
-         sum([B : E in List, B #<=> (E#=Key)]) #= Card
+		count(Key,List, #= ,Card)
     end.
 
 %
 % Ensure that List is increasing
 %
-increasing(FDVars),array(FDVars) =>
+increasing(FDVars), array(FDVars) =>
    foreach(I in 2..length(FDVars)) FDVars[I-1] #=< FDVars[I] end.
-increasing(FDVars),list(FDVars) =>
+increasing(FDVars), list(FDVars) =>
    increasing_list(FDVars).
 increasing(FDVars) =>
-   handle_exception($list_or_array_expected(FDVars),increasing).
+   handle_exception($list_or_array_expected(FDVars), increasing).
 
 increasing_list([]) => true.
 increasing_list([_]) => true.
@@ -520,12 +535,12 @@ increasing_list([X|T@[Y|_]]) =>
     X #=< Y,
     increasing_list(T).
 
-increasing_strict(FDVars),array(FDVars) =>
+increasing_strict(FDVars), array(FDVars) =>
    foreach(I in 2..length(FDVars)) FDVars[I-1] #< FDVars[I] end.
-increasing_strict(FDVars),list(FDVars) =>
+increasing_strict(FDVars), list(FDVars) =>
    increasing_strict_list(FDVars).
 increasing_strict(FDVars) =>
-   handle_exception($list_or_array_expected(FDVars),increasing_strict).
+   handle_exception($list_or_array_expected(FDVars), increasing_strict).
 
 increasing_strict_list([]) => true.
 increasing_strict_list([_]) => true.
@@ -537,11 +552,11 @@ increasing_strict_list([X|T@[Y|_]]) =>
 %% lex_le(L1,L2): collection L1 is lexicographically less than or equal to L2
 %% same as sat module's definition
 %%
-lex_le(L1,L2),list(L1),list(L2) =>
+lex_le(L1,L2), list(L1), list(L2) =>
     check_args_lex(L1,L2,L11,L22),
     lex_le_aux(L11,L22).
-lex_le(L1,L2),array(L1),array(L2) =>
-    check_args_lex(to_list(L1),to_list(L2),L11,L22),
+lex_le(L1,L2), array(L1), array(L2) =>
+    check_args_lex(to_list(L1), to_list(L2), L11,L22),
     lex_le_aux(L11,L22).
 lex_le(L1,L2) =>
     throw($invalid(lex_le(L1,L2))).
@@ -550,27 +565,27 @@ lex_le(L1,L2) =>
 %% lex_lt(L1,L2): collection L1 is lexicographically less than L2
 %% same as sat module's definition
 %%
-lex_lt(L1,L2),list(L1),list(L2) =>
+lex_lt(L1,L2), list(L1), list(L2) =>
     check_args_lex(L1,L2,L11,L22),
     lex_lt_aux(L11,L22).
-lex_lt(L1,L2),array(L1),array(L2) =>
-    check_args_lex(to_list(L1),to_list(L2),L11,L22),
+lex_lt(L1,L2), array(L1), array(L2) =>
+    check_args_lex(to_list(L1), to_list(L2), L11,L22),
     lex_lt_aux(L11,L22).
 lex_lt(L1,L2) =>
     throw($invalid(lex_lt(L1,L2))).
 
 check_args_lex(L1,L2,L11,L22) =>
-    (bp.dvar_or_int_list(L1) -> true; handle_exception($dvar_list_expected(L1),lex)),
-    (bp.dvar_or_int_list(L2) -> true; handle_exception($dvar_list_expected(L2),lex)),
+    (bp.dvar_or_int_list(L1) -> true; handle_exception($dvar_list_expected(L1), lex)),
+    (bp.dvar_or_int_list(L2) -> true; handle_exception($dvar_list_expected(L2), lex)),
     N1 = length(L1),
     N2 = length(L2),
-    (N1==N2 ->
+    (N1 == N2 ->
         L11 = L1, L22 = L2
-    ;N1<N2 ->
+    ; N1 < N2 ->
         Min = min([fd_min(V) : V in L2]),
         Min1 = Min-1,
         L1Pad = [Min1 : _ in 1..N2-N1],
-        L11 = L1++L1Pad, L22=L2
+        L11 = L1++L1Pad, L22 = L2
     ;
         Min = min([fd_min(V) : V in L1]),
         Min1 = Min-1,
@@ -578,53 +593,37 @@ check_args_lex(L1,L2,L11,L22) =>
         L11 = L1, L22 = L2++L2Pad
     ).
 
+% L1 and L2 have the same length 
 lex_le_aux([],_) => true.
 lex_le_aux([X],[Y|_]) => X #=< Y.
 lex_le_aux([X1,X2],[Y1,Y2|_]) => (X1 #< Y1) #\/ (X1 #= Y1 #/\ (X2 #=< Y2)).
 lex_le_aux(L1,L2) =>
-    N1 = length(L1),
-    N2 = length(L2),
-    (N1 > N2 ->
-        L11 = new_list(N2),
-        once(append(L11,_,L1)),
-        lex_lt_aux(L11,L2)
-    ;        
-        N = N1,
-        A1 = to_array(L1),
-        A2 = to_array(L2),
-        ReifLexLE = new_array(N),
-        ReifLexLE :: 0..1,
-        ReifLexLE[N] #<=> (A1[N] #=< A2[N]),
-        foreach(I in 2..N-1)
-            ReifLexLE[I] #<=> (A1[I] #< A2[I] #\/ ((A1[I] #= A2[I]) #/\ ReifLexLE[I+1]))
-            end,
-        A1[1] #< A2[1] #\/ ((A1[1] #= A2[1]) #/\ ReifLexLE[2])
-    ).
+    N = length(L1),
+    A1 = to_array(L1),
+    A2 = to_array(L2),
+    ReifLexLE = new_array(N),
+    ReifLexLE :: 0..1,
+    ReifLexLE[N] #<=> (A1[N] #=< A2[N]),
+    foreach(I in 2..N-1)
+        ReifLexLE[I] #<=> (A1[I] #< A2[I] #\/ ((A1[I] #= A2[I]) #/\ ReifLexLE[I+1]))
+    end,
+    A1[1] #< A2[1] #\/ ((A1[1] #= A2[1]) #/\ ReifLexLE[2]).
 
+% L1 and L2 have the same length 
 lex_lt_aux([],_) => true.
-lex_lt_aux([X],[Y]) => X #< Y.
-lex_lt_aux([X],[Y|_]) => X #=< Y.
-lex_lt_aux([X1,X2],[Y1,Y2]) => (X1 #< Y1) #\/ (X1 #= Y1 #/\ (X2 #< Y2)).
-lex_lt_aux([X1,X2],[Y1,Y2|_]) => (X1 #< Y1) #\/ (X1 #= Y1 #/\ (X2 #=< Y2)).
+lex_lt_aux([X],[Y|_]) => X #< Y.
+lex_lt_aux([X1,X2],[Y1,Y2|_]) => (X1 #< Y1) #\/ (X1 #= Y1 #/\ (X2 #< Y2)).
 lex_lt_aux(L1,L2) =>
-    N1 = length(L1),
-    N2 = length(L2),
-    (N1 >= N2 ->
-        N = N2,
-        A1 = to_array(L1),
-        A2 = to_array(L2),
-        ReifLexLE = new_array(N),
-        ReifLexLE :: 0..1,
-        ReifLexLE[N] #<=> (A1[N] #< A2[N]),
-        foreach(I in 2..N-1)
-            ReifLexLE[I] #<=> (A1[I] #< A2[I] #\/ ((A1[I] #= A2[I]) #/\ ReifLexLE[I+1]))
-        end,
-        A1[1] #< A2[1] #\/ ((A1[1] #= A2[1]) #/\ ReifLexLE[2])
-    ;
-        L22 = new_list(N1),
-        once(append(L22,_,L2)),
-        lex_le_aux(L1,L22)
-    ).
+    N = length(L1),
+    A1 = to_array(L1),
+    A2 = to_array(L2),
+    ReifLexLE = new_array(N),
+    ReifLexLE :: 0..1,
+    ReifLexLE[N] #<=> (A1[N] #< A2[N]),
+    foreach(I in 2..N-1)
+        ReifLexLE[I] #<=> (A1[I] #< A2[I] #\/ ((A1[I] #= A2[I]) #/\ ReifLexLE[I+1]))
+    end,
+    A1[1] #< A2[1] #\/ ((A1[1] #= A2[1]) #/\ ReifLexLE[2]).
 
 %%
 nvalue(N,L) => bp.'$nvalue'(N,L).
@@ -649,7 +648,7 @@ regular(L, Q, S, M, Q0, Fs) =>
 
 % neqs(Neqs) => neqs(Neqs).
 neqs(Neqs) =>
-    (array(Neqs) -> to_list(Neqs)=List; List=Neqs),    
+    (array(Neqs) -> to_list(Neqs) = List; List = Neqs),    
     check_neqs_args(List,List1),
     foreach ('#\\='(X,Y) in List1)
         X #!= Y
