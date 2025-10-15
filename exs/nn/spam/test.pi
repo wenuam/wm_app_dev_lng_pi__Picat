@@ -2,7 +2,7 @@ import nn, util.
 
 main =>
     TestFile = "TestX.csv",
-	main([TestFile]).
+    main([TestFile]).
 
 main([TestFile]) =>
     Ann = nn_load("spam.net"),
