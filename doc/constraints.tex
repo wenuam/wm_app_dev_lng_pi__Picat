@@ -89,7 +89,7 @@ The following built-ins are provided for domain variables.
 \end{itemize}
 
 \section{Table constraints}
-A \emph{table constraint}\index{table constraint}, or an \emph{extensional constraint}\index{extensional constraint}, over a tuple of variables specifies a set of tuples that are allowed (called \emph{positive}) or disallowed (called \emph{negative}) for the variables. A positive constraint takes the form \texttt{table\_in($DVars$,$R$)}\index{\texttt{table\_in/2}}, where $DVars$ is either a tuple of variables $\{X_1,\ldots,X_n\}$ or a list of tuples of variables, and $R$ is a list of tuples of integers in which each tuple takes the form $\{a_1,\ldots,a_n\}$.  A negative constraint takes the form \texttt{table\_notin($DVars$,$R$)}\index{\texttt{table\_notin/2}}.
+A \emph{table constraint}\index{table constraint}, or an \emph{extensional constraint}\index{extensional constraint}, over a tuple of variables specifies a set of tuples that are allowed (called \emph{positive}) or disallowed (called \emph{negative}) for the variables. A positive constraint takes the form \texttt{table\_in($DVars$,$R$)}\index{\texttt{table\_in/2}}, where $DVars$ is either a tuple of variables $\{X_1,\ldots,X_n\}$ or a list of tuples of variables, and $R$ is a list of tuples in which each tuple takes the form $\{a_1,\ldots,a_n\}$, where $a_i$ is an integer or the \textit{don't-care} symbol $*$\index{don't-care symbol}.  A negative constraint takes the form \texttt{table\_notin($DVars$,$R$)}\index{\texttt{table\_notin/2}}.
 
 \subsection*{Example}
 The following example solves a toy crossword puzzle. One variable is used for each cell in the grid, so each slot corresponds to a tuple of variables. Each word is represented as a tuple of integers, and each slot takes on a set of words of the same length as the slot. Recall that the function \texttt{ord($Char$)}\index{\texttt{ord/1}} returns the code of $Char$, and that the function \texttt{chr($Code$)}\index{\texttt{chr/1}} returns the character of $Code$.
@@ -364,8 +364,8 @@ aa \= aaa \= aaa \= aaa \= aaa \= aaa \= aaa \kill
 \> \texttt{gurobi\_cl ResultFile=$SolFile$ $TmpFile$}
 \end{tabbing}
 where $SolFile$ is a file for the solution, and $TmpFile$ is a file that stores the CPLEX-format constraints. Picat throws \texttt{existence\_error} if the command \texttt{gurobi\_cl} is not available.
-% \item \texttt{sol($File$)}: Instruct the mip solver to save the solution into $File$ rather than the default file '\_\_tmp.sol'.
-\item \texttt{tmp($File$)}: Dump the CPLEX format to $File$ rather than the default file '\_\_tmp.lp', before calling the mip solver. The name $File$  must be a string or an atom that has the extension name '.lp'. When this file name is specified, the mip solver will save the solution into a file name that has the same main name as $File$ but the extension name '.sol'.
+% \item \texttt{sol($File$)}: Instruct the mip solver to save the solution into $File$ rather than the default file ``\_\_tmp.sol''.
+\item \texttt{tmp($File$)}: Dump the CPLEX format to $File$ rather than the default file ``\_\_tmp.lp'', before calling the mip solver. The name $File$  must be a string or an atom that has the extension name ``.lp''. When this file name is specified, the mip solver will save the solution into a file name that has the same main name as $File$ but the extension name ``.sol''.
 % \item \texttt{\$format(clp)}: dumps the constraints in B-Prolog format to \texttt{stdout}.
 \end{itemize}
 
@@ -379,8 +379,8 @@ aa \= aaa \= aaa \= aaa \= aaa \= aaa \= aaa \kill
 where $TmpFile$ is a file that stores the SMT-LIB2-format constraints, and $SolFile$ is a solution file. Picat throws \texttt{existence\_error} if the command \texttt{cvc4} is not available in the path.
 \item \texttt{dump}: Dump the constraints in SMT-LIB2 format to \texttt{stdout}.
 \item \texttt{dump($File$)}: Dump the SMT-LIB2 format to $File$.
-\item \texttt{logic($Logic$)}: Instruct the SMT solver to use $Logic$ in the solving, where $Logic$ must be an atom or a string, and the specified logic must be available in the SMT solver. The default logic for Z3 is 'LIA', and the default logic for CVC4 is 'NIA'.
-\item \texttt{tmp($File$)}: Dump the SMT-LIB2 format to $File$ rather than the default file '\_\_tmp.smt2', before calling the smt solver. The name $File$  must be a string or an atom that has the extension name '.smt2'. When this file name is specified, the smt solver will save the solution into a file name that has the same main name as $File$ but the extension name '.sol'.
+\item \texttt{logic($Logic$)}: Instruct the SMT solver to use $Logic$ in the solving, where $Logic$ must be an atom or a string, and the specified logic must be available in the SMT solver. The default logic for Z3 is ``LIA'', and the default logic for CVC4 is ``NIA''.
+\item \texttt{tmp($File$)}: Dump the SMT-LIB2 format to $File$ rather than the default file ``\_\_tmp.smt2'', before calling the smt solver. The name $File$  must be a string or an atom that has the extension name ``.smt2''. When this file name is specified, the smt solver will save the solution into a file name that has the same main name as $File$ but the extension name ``.sol''.
 \item \texttt{z3}: \index{\texttt{z3}}Instruct Picat to use the z3 SMT solver. When no SMT solver is specified, Picat first searches for the command \texttt{z3}, and when \texttt{z3} cannot be found it continues to search for the command \texttt{cvc4}.
 \end{itemize}
 \ignore{

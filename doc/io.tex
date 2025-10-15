@@ -59,9 +59,9 @@ The \texttt{read} functions in the \texttt{io} module take a file descriptor\ind
 \item \texttt{read\_picat\_token($TokenType$,$TokenValue$)}\index{\texttt{read\_picat\_token/2}}: This predicate reads a token from \texttt{stdin}.
 \item \texttt{read\_picat\_token($FD$) = $TokenValue$}\index{\texttt{read\_picat\_token/1}}: This function reads a single Picat token from the file that is represented by $FD$ and returns the token value.
 \item \texttt{read\_picat\_token() = $TokenValue$}\index{\texttt{read\_picat\_token/0}}: This function is the same as the above, except that it reads from {\tt stdin}.
-\item \texttt{read\_term($FD$) = $Term$}\index{\texttt{read\_term/1}}: This function reads a single Picat term from the file that is represented by $FD$.  The term must be followed by a dot  '\texttt{.}' and at least one whitespace character.  This function consumes the dot symbol.  The whitespace character is not stored in the returned string.
+\item \texttt{read\_term($FD$) = $Term$}\index{\texttt{read\_term/1}}: This function reads a single Picat term from the file that is represented by $FD$.  The term must be followed by a dot  `\texttt{.}' and at least one whitespace character.  This function consumes the dot symbol.  The whitespace character is not stored in the returned string.
 \item \texttt{read\_term() = $Term$}\index{\texttt{read\_term/0}}: This function is the same as \texttt{read\_term(stdin)}.
-\item \texttt{read\_line($FD$) = $String$}\index{\texttt{read\_line/1}}: This function reads a string from the file that is represented by $FD$, stopping when either a newline ('\texttt{$\backslash$r$\backslash$n}' on Windows, and '\texttt{$\backslash$n}' on Unix) is read, or the \texttt{end\_of\_file} atom is returned.  The newline is not stored in the returned string.
+\item \texttt{read\_line($FD$) = $String$}\index{\texttt{read\_line/1}}: This function reads a string from the file that is represented by $FD$, stopping when either a newline (`\texttt{$\backslash$r$\backslash$n}' on Windows, and `\texttt{$\backslash$n}' on Unix) is read, or the \texttt{end\_of\_file} atom is returned.  The newline is not stored in the returned string.
 \item \texttt{read\_line() = $String$}\index{\texttt{read\_line/0}}: This function is the same as \texttt{read\_line(stdin)}.
 \item \texttt{readln($FD$) = $String$}\index{\texttt{readln/1}}: This function does the same thing as \texttt{read\_line}\index{\texttt{read\_line/1}}.
 \item \texttt{readln() = $String$}\index{\texttt{readln/0}}: This function is the same as \texttt{readln(stdin)}.
@@ -76,7 +76,7 @@ The \texttt{read} functions in the \texttt{io} module take a file descriptor\ind
 \item \texttt{read\_file\_codes() = $List$}\index{\texttt{read\_file\_codes/0}}: This function reads UTF-8 codes of an entire character file from the console into a list. 
 \item \texttt{read\_file\_lines($File$) = $Lines$}\index{\texttt{read\_file\_lines/1}}: This function reads an entire character file into a list of line strings.  
 \item \texttt{read\_file\_lines() = $Lines$}\index{\texttt{read\_file\_lines/0}}: This function reads an entire character file from the console into a list of line strings.  
-\item \texttt{read\_file\_terms($File$) = $Lines$}\index{\texttt{read\_file\_terms/1}}: This function reads an entire text file into a list of terms. In the file, each term must be terminated by '.' followed by at least one white space.
+\item \texttt{read\_file\_terms($File$) = $Lines$}\index{\texttt{read\_file\_terms/1}}: This function reads an entire text file into a list of terms. In the file, each term must be terminated by `.' followed by at least one white space.
 \item \texttt{read\_file\_terms() = $Lines$}\index{\texttt{read\_file\_terms/0}}: This function reads an entire text file from the console into a list of terms.
 \end{itemize}
 

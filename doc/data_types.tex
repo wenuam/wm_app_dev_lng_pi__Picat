@@ -133,6 +133,7 @@ In addition to the numeric operators, the \texttt{basic} module also provides th
 
 \begin{itemize}
 \item \texttt{between($From$, $To$, $X$)}\index{\texttt{between/3}} (nondet): If $X$ is bound to an integer, then this predicate determines whether $X$ is between $From$ and $To$.  Otherwise, if $X$ is unbound, then this predicate nondeterministically selects $X$ from the integers that are between $From$ and $To$. It is the same as \texttt{member($X$, $From$..$To$)}\index{\texttt{member/2}}.
+\item \texttt{bigint($Term$)}\index{\texttt{bigint/1}}: This predicate is true if $Term$ is a big integer.
 \item \texttt{float($Term$)}\index{\texttt{float/1}}: This predicate is true if $Term$ is a real number\index{number}.
 \item \texttt{int($Term$)}\index{\texttt{int/1}}: This predicate is true if $Term$ is an integer.
 \item \texttt{integer($Term$)}\index{\texttt{integer/1}}: The same as \texttt{int($Term$)}.
