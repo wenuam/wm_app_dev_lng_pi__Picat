@@ -1,3 +1,5 @@
+import os.
+
 /****************************************************************************
    pb2pi.pi (in Picat), by Neng-Fa Zhou, Jan. 11, 2016
 
@@ -23,7 +25,19 @@
    You need to ensure that the path to the Picat executable is set properly 
    and the file "bp2pi.pi" and "nqueens_8.opb" are in the working directory.
    Otherwise, the full paths to the executable and the files must be given.
+
+   If not files are given, the pb2pi converts all the opb files in the current
+   director to Picat, as in:
+
+       picat pb2pi
+
 *********************************************************************************/
+main =>
+    Fs = listdir("."),
+    foreach (F in Fs, append(_,".opb",F))
+        not not pb2picat(F)
+    end.
+    
 main(InFile),string(InFile) =>
     pb2picat(InFile).
 main([InFile]),string(InFile) =>
@@ -43,7 +57,7 @@ pb2picat(InFile) =>
     read_pb_cl_tokens(InStream,Tokens),
     printf("converting %s\n",InFile),
     VarsSet = new_set(),
-    catch(parse(InStream,Tokens,VarsSet,Constrs,Obj),Exception,(println(Exception),close(InStream),halt)),
+    catch(parse(InStream,Tokens,VarsSet,Constrs,Obj),Exception,(println(Exception),close(InStream),true)),
     OutStream = open(OutFile,write),
     printf(OutStream,"import sat.\n\n"),
     printf(OutStream,"main =>\n"),
@@ -118,7 +132,7 @@ w_space('\t').
 w_space('\r').
 
 read_pb_cl_tokens(_InStream,end_of_file,_,Tokens) => Tokens=end_of_file.     % end-of-file
-read_pb_cl_tokens(InStream,punctuation,';',Tokens) => 
+read_pb_cl_tokens(_InStream,punctuation,';',Tokens) => 
     Tokens = [].
 read_pb_cl_tokens(InStream,_Type,Token,Tokens) =>                   
     Tokens=[Token|Tokens1],
@@ -164,10 +178,10 @@ output_solve(OutStream,_MainFileStr,min(Exp),VarsSet) =>
     output_exp(OutStream,Exp),
     print(OutStream,")],Vars),\n"),
     output_ans(OutStream,VarsSet).
-output_solve(OutStream,MainFileStr,_Obj,VarsSet) =>
-    printf(OutStream,"    solve([$dump(\"Picat/%s.cnf\")],Vars).\n",MainFileStr).
-%    printf(OutStream,"    solve(Vars),\n"),
-%    output_ans(OutStream,VarsSet).
+output_solve(OutStream,_MainFileStr,_Obj,VarsSet) =>
+%    printf(OutStream,"    solve([$dump(\"Picat/%s.cnf\")],Vars).\n",MainFileStr).
+    printf(OutStream,"    solve(Vars),\n"),
+    output_ans(OutStream,VarsSet).
 
 output_ans(OutStream,VarsSet) =>
     keys(VarsSet).sort() = Vars,

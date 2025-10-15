@@ -17,7 +17,7 @@
 */
 
 module set_util.
-
+/*
 % main => test.
 
 
@@ -40,7 +40,7 @@ test =>
     if subset(E,C) then printf("%w is a subset of %w\n", E,C) end,
 
     nl.
-
+*/
 % test if A is a subset of B
 subset(A,B)=>
     foreach(X in A) membchk(X,B) end.

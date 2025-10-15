@@ -1,5 +1,5 @@
 module cp.
-import common_sat_cp.
+import common_constr.
 
 % '#!='(X,Y) => X #!= Y.
 % '#/\\'(X,Y) => X #/\ Y.
@@ -16,9 +16,11 @@ import common_sat_cp.
 % '#>='(X,Y) => X #>= Y.
 %  '::'(Vars,Domain) => '::'(Vars,Domain).
 % all_different(FDVars) => all_different(FDVars).
-% all_distinct(FDVars) => all_distinct(FDVars).
 % all_different_except_0(Xs) => all_different_except_0(Xs).
+% all_distinct(FDVars) => all_distinct(FDVars).
 % assignment(FDVars1,FDVars2) => assignment(FDVars1,FDVars2).
+% at_most(N,X,V) => at_most(N,X,V).
+% at_least(N,X,V) => at_least(N,X,V).
 % circuit(FDVars) => circuit(FDVars).
 % count(V,FDVars,Rel,N) => count(V,FDVars,Rel,N).
 % cumulative(Starts,Durations,Resources,Limit) => cumulative(Starts,Durations,Resources,Limit).
@@ -27,6 +29,7 @@ import common_sat_cp.
 % diffn(RectangleList) => diffn(RectangleList).
 % disjunctive_tasks(Tasks) => disjunctive_tasks(Tasks).
 % element(I,Terms,V) => element(I,Terms,V).
+% exactly(N, X, V) => exactly(N, X, V).
 % fd_degree(FDVar) = fd_degree(FDVar).
 % fd_disjoint(DVar1,DVar2) => fd_disjoint(DVar1,DVar2).
 % fd_dom(FDVar) = fd_dom(FDVar).
@@ -45,14 +48,16 @@ import common_sat_cp.
 % increasing_strict(FDVars) => increasing_strict(FDVars).
 % indomain(Var) => indomain(Var).
 % indomain_down(Var) => indomain_down(Var).
+% lex_le(L1,L2) = > lex_le(L1,L2).
+% lex_lt(L1,L2) = > lex_lt(L1,L2).
+% matrix_element(M,I,J,MIJ) => matrix_element(M,I,J,MIJ).
 % neqs(Neqs) => neqs(Neqs).
 % new_dvar() = new_dvar().
 % new_fd_var() = new_fd_var().
 % notin(VarOrVars,D) => notin(VarOrVars,D).
-% lex_lt(L1,L2) = > lex_lt(L1,L2).
-% lex_le(L1,L2) = > lex_le(L1,L2).
 % nvalue(N,L) => nvalue(N,L).
 % regular(X, Q, S, D, Q0, Fs) => regular(X, Q, S, D, Q0, Fs).
+% scalar_product(A, X, Product) => scalar_product(A, X, Product).
 % serialized(Starts,Durations) => serialized(Starts,Durations).
 % solve(Options,Vars) => solve(Options,Vars)
 % solve(Vars) => solve(Vars).
@@ -120,7 +125,7 @@ solve(Options,Vars) =>
         MetaCalls = []
     ),
     (select($label(LabelPred),Options1,Options2) ->
-        (atom(LabelPred) -> true; handle_exception(invalid_label_option,LabelPred)),
+        (atom(LabelPred) -> true; handle_exception($atom_expected(LabelPred),solve)),
         (bp.'$dyna_resolve_name'(['$picat_top_level'],LabelPred,1,pred,MLabelPred) ->
             true
         ;
@@ -176,6 +181,9 @@ count(V,FDVars,'#!=',N) =>
 count(V,FDVars,Rel,N) =>
     (array(FDVars) -> to_list(FDVars)=List; List=FDVars),
     bp.count(V,List,Rel,N).
+
+count(V,FDVars,N) =>
+    count(V,FDVars,'#=',N).
 
 % cumulative(Starts,Durations,Resources,Limit) => cumulative(Starts,Durations,Resources,Limit).
 cumulative(Starts,Durations,Resources,Limit) =>
@@ -248,10 +256,6 @@ neqs(Neqs) =>
     check_neqs_args(List,List1),
     bp.post_neqs(List1).
 
-check_neqs_args([],List) => List=[].
-check_neqs_args([X #!= Y|Neqs],List) => List=['#\\='(X,Y)|ListR],check_neqs_args(Neqs,ListR).
-check_neqs_args([Neq|_],_) => handle_exception($neq_constraint_expected(Neq),neqs).
-
 % serialized(Starts,Durations) => serialized(Starts,Durations).
 serialized(Starts,Durations) =>
     (array(Starts) -> to_list(Starts)=SList; SList=Starts),    
@@ -316,7 +320,7 @@ fd_min_max(FDVar,Min,Max) =>
 fd_next(FDVar,Elm) = NextElm, 
     dvar(FDVar), integer(Elm) 
 =>
-    (bp.domain_next_inst(FDVar,Elm,NextElm) -> true; handle_exception(failed_function_call,fd_next)).
+    (bp.domain_next_inst(FDVar,Elm,NextElm) -> true; handle_exception(failed,fd_next)).
 fd_next(FDVar,Elm) = _NextElm =>
     bp.expect_dvar_int(FDVar,Elm,fd_next).
 
@@ -324,7 +328,7 @@ fd_next(FDVar,Elm) = _NextElm =>
 fd_prev(FDVar,Elm) = PrevElm,
     dvar(FDVar), integer(Elm) 
 =>
-    (bp.b_DM_PREV_ccf(FDVar,Elm,PrevElm) -> true; handle_exception(failed_function_call,fd_prev)).
+    (bp.b_DM_PREV_ccf(FDVar,Elm,PrevElm) -> true; handle_exception(failed,fd_prev)).
 fd_prev(FDVar,Elm) = _PrevElm =>
     bp.expect_dvar_int(FDVar,Elm,fd_prev).
 
@@ -351,30 +355,17 @@ fd_vector_min_max(Min,Max) =>
     bp.fd_vector_min_max(Min,Max).
 
 /************************************************************************* 
-    regular(W,Q,S,M,Q0,Fs)
+    regular(L,Q,S,M,Q0,Fs)
 
-  W : A sentence (an IntVar array or list)
+  L : A sentence (an IntVar array or list)
   Q : number of states
   S : input_max, inputs are from 1 to S
-  M : transition matrix (the entry M[I,J] is a list of outgoing states for NFA)
+  M : transition matrix:  M[I,J] (I in 1..S, J in 1..Q) is a list of outgoing states for NFA (0 means an error).
   Q0: initial state
   Fs : accepting states
-
-  This is a translation of MiniZinc's regular constraint (defined in
-  lib/zinc/globals.mzn), via the Comet code refered above.
-  by Hakan Kjellerstrand, 2014, improved by N.F. Zhou
-
-  The following comments are adapted from the MiniZinc code:
-
-  regular(array[int] of var int: W, int: Q, int: S, array[int,int] of int: M, int: Q0, set of int: F)
-  The sequence of values in array W (which must all be in the range 1..S)
-  is accepted by the FA of Q states with input 1..S and transition
-  M (which maps (1..Q, 1..S) -> 0..Q)) and initial state Q0
-  (which must be in 1..Q) and accepting states 'Fs' (which all must be in
-  1..Q).  State 0 is reserved for the failing state.
 ***************************************************************************/
 regular(L, Q, S, M, Q0, Fs) =>
-    regular_cpsat(L, Q, S, M, Q0, Fs, cp).
+    regular_constr(L, Q, S, M, Q0, Fs, cp).
 
 %%
 %% lex_le(L1,L2): collection L1 is lexicographically less than or equal to L2
@@ -386,7 +377,7 @@ lex_le(L1,L2),array(L1),array(L2) =>
     check_args_lex(to_list(L1),to_list(L2),L11,L22),
     lex_le_aux(L11,L22).
 lex_le(L1,L2) =>
-    handle_exception($wrong_arguments(L1,L2),lex_le).
+    throw($invalid(lex_le(L1,L2))).
 
 %%
 %% lex_lt(L1,L2): collection L1 is lexicographically less than L2
@@ -398,7 +389,7 @@ lex_lt(L1,L2),array(L1),array(L2) =>
     check_args_lex(to_list(L1),to_list(L2),L11,L22),
     lex_lt_aux(L11,L22).
 lex_lt(L1,L2) =>
-    handle_exception($wrong_arguments(L1,L2),lex_lt).
+    throw($invalid(lex_lt(L1,L2))).
 
 check_args_lex(L1,L2,L11,L22) =>
     (bp.dvar_or_int_list(L1) -> true; handle_exception($dvar_list_expected(L1),lex)),
@@ -605,7 +596,7 @@ increasing(FDVars),array(FDVars) =>
 increasing(FDVars),list(FDVars) =>
    increasing_list(FDVars).
 increasing(FDVars) =>
-   handle_exception($dvar_collection_expected(FDVars),increasing).
+   handle_exception($list_or_array_expected(FDVars),increasing).
 
 increasing_list([]) => true.
 increasing_list([_]) => true.
@@ -618,7 +609,7 @@ increasing_strict(FDVars),array(FDVars) =>
 increasing_strict(FDVars),list(FDVars) =>
    increasing_strict_list(FDVars).
 increasing_strict(FDVars) =>
-   handle_exception($dvar_collection_expected(FDVars),increasing_strict).
+   handle_exception($list_or_array_expected(FDVars),increasing_strict).
 
 increasing_strict_list([]) => true.
 increasing_strict_list([_]) => true.
@@ -634,7 +625,7 @@ decreasing(FDVars),array(FDVars) =>
 decreasing(FDVars),list(FDVars) =>
    decreasing_list(FDVars).
 decreasing(FDVars) =>
-   handle_exception($dvar_collection_expected(FDVars),decreasing).
+   handle_exception($list_or_array_expected(FDVars),decreasing).
 
 decreasing_list([]) => true.
 decreasing_list([_]) => true.
@@ -647,7 +638,7 @@ decreasing_strict(FDVars),array(FDVars) =>
 decreasing_strict(FDVars),list(FDVars) =>
    decreasing_strict_list(FDVars).
 decreasing_strict(FDVars) =>
-   handle_exception($dvar_collection_expected(FDVars),decreasing_strict).
+   handle_exception($list_or_array_expected(FDVars),decreasing_strict).
 
 decreasing_strict_list([]) => true.
 decreasing_strict_list([_]) => true.

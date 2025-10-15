@@ -1,91 +1,37 @@
 module common_sat_cp.
 
-regular_cpsat(L, Q, S, M, Q0, Fs, Solver), list(L) =>
-    regular_cpsat_aux(L, Q, S, M, Q0, Fs, Solver).
-regular_cpsat(L, Q, S, M, Q0, Fs ,Solver), array(L) =>
-    regular_cpsat_aux(to_list(L), Q, S, M, Q0, Fs ,Solver).
-regular_cpsat(L, _Q, _S, _M, _Q0, _Fs, _Solver) =>
-    handle_exception($list_or_array_expected(L),regular).
-
-% W is a list
-regular_cpsat_aux(W, Q, S, M, Q0, Fs, Solver) =>
-    % If W has index set 1..n, then Visited[1] is the initial state
-    % (Q0), and Visited[i+1] holds the state we're in after  processing
-    % W[i].  If Visited[n+1] is in Fs, then we succeed (ie. accept the string).
-    check_regular_args(Q, S, M, Q0, Fs, Matrix, FsLst),   
-    N = len(W),
-    Visited = new_array(N+1),            % states
-    bp.domain(to_list(Visited),1,Q),
-    bp.domain(W,1,S),
-    Visited[1] = Q0,                    % initial state
-    bp.'::'(Visited[N+1],FsLst),
-    %    
-    preprocess_regular(Q,S,Matrix,Q0,FsLst,Visited,N),
-    post_matrix_element_for_regular(W,1,Matrix,Q,S,Visited,Solver),
-    if Solver==cp then 
-        bp.wait_to_check_regular(Matrix,Q0,FsLst,W)      % needed for NFA
-    end.  
-
-post_matrix_element_for_regular([],_I,_Matrix,_NRows,_NCols,_Visited,_Solver) => true.
-post_matrix_element_for_regular([E|L],I,Matrix,NRows,NCols,Visited,Solver) =>
-    I1 is I+1,
-    matrix_element_for_regular(Matrix,NRows,NCols,Visited[I],E,Visited[I1],Solver),
-    post_matrix_element_for_regular(L,I1,Matrix,NRows,NCols,Visited,Solver).
-
 % Here is MiniZinc's infamous matrix element
 %     a[i+1] = d[a[i], x[i]]
-matrix_element_for_regular(M,NRows,NCols,I,J,MIJ,Solver) =>
-    bp.domain(I,1,NRows),
-    bp.domain(J,1,NCols),
-    (bp.dvar_or_int(MIJ) -> true; bp.fd_new_var(MIJ)),
-    Table = [],
-    foreach(R in 1..NRows, C in 1..NCols)
-        if bp.b_DM_TRUE_cc(I,R) && bp.b_DM_TRUE_cc(J,C) then
-            Entry = M[R,C],
-            ((list(Entry);struct(Entry)) ->
-                foreach(E in Entry, bp.b_DM_TRUE_cc(MIJ,E))
-                    Table := [{R,C,E}|Table]
-                  end
-            ;Entry!==0, bp.b_DM_TRUE_cc(MIJ,Entry) ->
-                Table := [{R,C,Entry}|Table]
-            ;
-                true
-            )
-        end
-    end,
-    VarTuple = {I,J,MIJ},
+%
+post_matrix_element_for_regular([],_I,_Visited,_Table,_Solver) => true.
+post_matrix_element_for_regular([E|L],I,Visited,Table,Solver) =>
+    I1 is I+1,
+    VarTuple = {Visited[I],E,Visited[I+1]},
     (Solver==cp ->
         bp.table_in(VarTuple,Table)
     ;        
         bp.'$table_in'(VarTuple,Table)
-    ).
+    ),
+    post_matrix_element_for_regular(L,I1,Visited,Table,Solver).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Visited is a vector of state variables created for the automaton. For each 
-% state variable Visited[T] (T=2..MaxSteps), a state cannot be a possible value
-% if it cannot be reached from Q0 in T steps. Similarly, for each state variable
-% Visited[N-T+2], a state cannot be a possible value either if it cannot be
-% reached from any final state in T steps.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-preprocess_regular(Q,S,Matrix,Q0,FsLst,Visited,N) =>
-    MaxSteps = N,                                             % consider up to MaxSteps steps
-    ReachFromQ0 = new_array(Q,MaxSteps),                      % ReachFromQ0[I,K] is 1 if state I can be reached from Q0 in K steps
-    fa_reachable(Q0,1,MaxSteps,S,Matrix,ReachFromQ0),         % forward from Q0, defined in common_sat_cp.pi
-    %      
-    transport_trans_matrix(Matrix,TMatrix),
-    ReachFromF = new_array(Q,MaxSteps),                       % ReachFromF[I,K] is 1 if state I can be reached from a final state in K steps backward
-    foreach (F in FsLst)
-         fa_reachable(F,1,MaxSteps,S,TMatrix,ReachFromF)      % backward from a final state. 
+% convert a matrix to a table
+%  {I,J,M[I,J]}
+%
+matrix_element_table(M,NRows,NCols,TableO) =>
+    Table = [],
+    foreach(R in 1..NRows, C in 1..NCols)
+        Entry = M[R,C],
+        ((list(Entry);struct(Entry)) ->
+            foreach(E in Entry)
+                Table := [{R,C,E}|Table]
+            end
+        ;Entry !== 0 ->
+            Table := [{R,C,Entry}|Table]
+        ;
+            true
+        )
     end,
-    %
-    foreach (T in 2..MaxSteps, State in 1..Q)
-        if var(ReachFromQ0[State,T]) then                     % State cannot be reached from Q0 in T steps (Q0 is reachable in 1 step)
-            bp.domain_set_false(Visited[T],State)
-        end,
-        if var(ReachFromF[State,T]) then                      % State cannot be reached from any F in T steps (F is reachable in 1 step)
-            bp.domain_set_false(Visited[N-T+2],State)
-        end
-    end.
+	TableO = Table.
 
 check_regular_args(Q, S, M, Q0, Fs, Matrix, FsList) =>
     (integer(Q), Q > 0 -> true; handle_exception($positive_integer_expected(Q),regular)),
@@ -96,7 +42,7 @@ check_regular_args(Q, S, M, Q0, Fs, Matrix, FsList) =>
     (list(M) ->bp.list_matrix_to_array_matrix(M,Matrix); Matrix=M),
     (ground(Matrix) -> true; handle_exception($ground_matrix_expected(M),regular)),
     (check_matrix(Matrix,Q,S) -> true; handle_exception($invalid_matrix(M),regular)).
-	
+    
 int_list([]) => true.
 int_list([I|Is]) => integer(I), int_list(Is).
 
@@ -175,20 +121,20 @@ fa_reachable(State,NSteps,_N,_S,_Matrix,_Reach) ?=>
 fa_reachable(_State,NSteps,N,_S,_Matrix,_Reach), NSteps>N => true.
 fa_reachable(State,NSteps,N,S,Matrix,Reach) =>
     Reached = Reach[State,NSteps],
-	if var(Reached) then   % State hasn't been reached in NSteps before
-	    Reached = 1,
-    	NSteps1 = NSteps+1,
-    	foreach (Input in 1..S)
+    if var(Reached) then   % State hasn't been reached in NSteps before
+        Reached = 1,
+        NSteps1 = NSteps+1,
+        foreach (Input in 1..S)
             Entry = Matrix[State,Input],
-        	if list(Entry) then
+            if list(Entry) then
                 foreach (NextState in Entry)
                     fa_reachable(NextState,NSteps1,N,S,Matrix,Reach)
-            	end
-        	elseif Entry !== 0 then
-        	    fa_reachable(Entry,NSteps1,N,S,Matrix,Reach)
-      		end
-    	end
-	end.
+                end
+            elseif Entry !== 0 then
+                fa_reachable(Entry,NSteps1,N,S,Matrix,Reach)
+              end
+        end
+    end.
 
 %%
 check_scalars(A,X) =>

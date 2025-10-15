@@ -60,6 +60,7 @@ January 14, 2013 \\
     \item {\tt $X$ \verb+<=+ $Y$} 
     \item {\tt $X$ \verb+=+ $Y$} 
     \item {\tt $X$ \verb+=<+ $Y$} 
+    \item {\tt $X$ \verb+=:=+ $Y$}
     \item {\tt $X$ \verb+==+ $Y$} 
     \item {\tt $X$ \verb+>+ $Y$} 
     \item {\tt $X$ \verb+>=+ $Y$} 
@@ -109,8 +110,8 @@ January 14, 2013 \\
     \item \texttt{atomic($Term$)}\index{\texttt{atomic/1}} 
     \item \texttt{attr\_var($Term$)}\index{\texttt{attr\_var/1}} 
     \item \texttt{avg($ListOrArray$) = $Val$}\index{\texttt{avg/1}}
-    \item \texttt{bind\_vars($Term$,$Val$)}\index{\texttt{bind\_vars/2}}
     \item \texttt{between($From$,$To$,$X$)}\index{\texttt{between/3}} (nondet)
+    \item \texttt{bind\_vars($Term$,$Val$)}\index{\texttt{bind\_vars/2}}
     \item \texttt{call($S$,$Arg_1$,$\ldots$,$Arg_n$)}\index{\texttt{call}} 
     \item \texttt{call\_cleanup($S$,$Cleanup$)}\index{\texttt{call\_cleanup/2}} 
     \item \texttt{catch($S$,$Exception$,$Handler$)}\index{\texttt{catch/3}} 
@@ -151,6 +152,12 @@ January 14, 2013 \\
     \item \texttt{has\_key($Map$,$Key$)}\index{\texttt{has\_key/2}} 
     \item \texttt{hash\_code($Term$) = $Int$}\index{\texttt{hash\_code/1}} 
     \item \texttt{head($List$) = $Term$}\index{\texttt{head/1}} 
+    \item \texttt{heap\_is\_empty($Heap$)}\index{\texttt{heap\_is\_empty/1}}
+    \item \texttt{heap\_pop($Heap$) = $Elm$}\index{\texttt{heap\_pop/1}}
+    \item \texttt{heap\_push($Heap$,$Elm$)}\index{\texttt{heap\_push/2}}
+    \item \texttt{heap\_size($Heap$) = $Size$}\index{\texttt{heap\_size/1}}
+    \item \texttt{heap\_to\_list($Heap$) = $List$}\index{\texttt{heap\_to\_list/1}}
+    \item \texttt{heap\_top($Heap$) = $Elm$}\index{\texttt{heap\_top/1}}
     \item \texttt{insert($List$,$Index$,$Elm$) = $ResList$}\index{\texttt{insert/3}} 
     \item \texttt{insert\_all($List$,$Index$,$AList$) = $ResList$}\index{\texttt{insert\_all/3}} 
     \item \texttt{insert\_ordered($List$,$Term$) = $R$}\index{\texttt{insert\_ordered/3}} 
@@ -165,8 +172,8 @@ January 14, 2013 \\
     \item \texttt{list($Term$)}\index{\texttt{list/1}} 
     \item \texttt{list\_to\_and($List$) = $Conj$}\index{\texttt{list\_to\_and/1}}
     \item \texttt{lowercase($Char$)}\index{\texttt{lowercase/1}} 
-    \item \texttt{map($F$,$List$) = $ListRes$} \index{\texttt{map/2}}
-    \item \texttt{map($F$,$ListA$,$ListB$) = $ListRes$} \index{\texttt{map/3}}
+    \item \texttt{map($Func$,$List1$,$List2$) = $ResList$} \index{\texttt{map/3}}
+    \item \texttt{map($FuncOrList$,$ListOrFunc$) = $ResList$} \index{\texttt{map/2}}
     \item \texttt{map($Term$)}\index{\texttt{map/1}} 
     \item \texttt{map\_to\_list($Map$) = $List$}\index{\texttt{map\_to\_list/1}} 
     \item \texttt{max($ListOrArray$) = $Val$}\index{\texttt{max/1}} 
@@ -191,6 +198,8 @@ January 14, 2013 \\
     \item \texttt{new\_list($N$,$InitVal$) = $List$}\index{\texttt{new\_list/2}} 
     \item \texttt{new\_map($Int$,$PairsList$) = $Map$}\index{\texttt{new\_map/2}} 
     \item \texttt{new\_map($IntOrPairsList$) = $Map$}\index{\texttt{new\_map/1}} 
+    \item \texttt{new\_max\_heap($IntOrList$) = $Heap$}\index{\texttt{new\_max\_heap/1}}
+    \item \texttt{new\_min\_heap($IntOrList$) = $Heap$}\index{\texttt{new\_min\_heap/1}}
     \item \texttt{new\_set($Int$,$ElmsList$) = $Map$}\index{\texttt{new\_set/2}} 
     \item \texttt{new\_set($IntOrElmsList$) = $Map$}\index{\texttt{new\_set/1}} 
     \item \texttt{new\_struct($Name$,$IntOrList$) = $Struct$}\index{\texttt{new\_struct/2}} 
@@ -212,13 +221,13 @@ January 14, 2013 \\
     \item \texttt{post\_event\_dom($X$,$Event$)}\index{\texttt{post\_event\_dom/2}}
     \item \texttt{post\_event\_ins($X$)}\index{\texttt{post\_event\_ins/1}}
     \item \texttt{prod($ListOrArray$) = $Val$}\index{\texttt{prod/1}}
-    \item \texttt{put($Map$,$Key$,$Val$)}\index{\texttt{put/3}} 
     \item \texttt{put($Map$,$Key$)}\index{\texttt{put/2}} 
-    \item \texttt{put\_attr($Var$,$Key$,$Val$)}\index{\texttt{put\_attr/3}} 
+    \item \texttt{put($Map$,$Key$,$Val$)}\index{\texttt{put/3}} 
     \item \texttt{put\_attr($Var$,$Key$)}\index{\texttt{put\_attr/2}} 
+    \item \texttt{put\_attr($Var$,$Key$,$Val$)}\index{\texttt{put\_attr/3}} 
     \item \texttt{real($Term$)}\index{\texttt{real/1}} 
-    \item \texttt{reduce($ListOrFun$,$FunOrList$) = $Value$}\index{\texttt{reduce/2}} 
-    \item \texttt{reduce($ListOrFun$,$FunOrList$,$InitVal$) = $Value$}\index{\texttt{reduce/3}} 
+    \item \texttt{reduce($Func$,$List$) = $Res$}\index{\texttt{reduce/2}} 
+    \item \texttt{reduce($Func$,$List$,$InitVal$) = $Res$}\index{\texttt{reduce/3}} 
     \item \texttt{remove\_dups($ListOrArray$) = $ResList$}\index{\texttt{remove\_dups/1}} 
     \item \texttt{repeat}\index{\texttt{repeat/0}} (nondet)
     \item \texttt{reverse($ListOrArray$) = $Res$}\index{\texttt{reverse/1}} 
@@ -242,7 +251,7 @@ January 14, 2013 \\
     \item \texttt{subsumes($Term_1$,$Term_2$)}\index{\texttt{subsumes/2}}
     \item \texttt{sum($ListOrArray$) = $Val$}\index{\texttt{sum/1}}
     \item \texttt{tail($List$) = $Term$}\index{\texttt{tail/1}} 
-    \item \texttt{throw $E$}\index{\texttt{throw}}    
+    \item \texttt{throw($E$)}\index{\texttt{throw/1}}    
     \item \texttt{to\_array($List$) = $Array$}\index{\texttt{to\_array/1}} 
     \item \texttt{to\_atom($String$) = $Atom$}\index{\texttt{to\_atom/1}} 
     \item \texttt{to\_binary\_string($Int$) = $String$}\index{\texttt{to\_binary\_string/1}}
@@ -253,6 +262,7 @@ January 14, 2013 \\
     \item \texttt{to\_integer($NumOrCharOrStr$) = $Int$}\index{\texttt{to\_integer/1}} 
     \item \texttt{to\_list($Struct$) = $List$}\index{\texttt{to\_list/1}} 
     \item \texttt{to\_lowercase($String$) = $LString$}\index{\texttt{to\_lowercase/1}}
+    \item \texttt{to\_number($NumOrCharOrStr$) = $Number$}\index{\texttt{to\_number/1}}
     \item \texttt{to\_oct\_string($Int$) = $String$}\index{\texttt{to\_oct\_string/1}}    
     \item \texttt{to\_radix\_string($Int$,$Base$) = $String$}\index{\texttt{to\_radix\_string/2}}
     \item \texttt{to\_real($NumOrStr$) = $Real$}\index{\texttt{to\_real/1}} 
@@ -276,18 +286,33 @@ January 14, 2013 \\
 \begin{scriptsize}
 \begin{itemize}
    \item \texttt{abs($X$) = $Val$}\index{\texttt{abs/1}} 
-   \item \texttt{acos($X$) = $Val$}\index{\texttt{acos/1}} 
+   \item \texttt{acos($X$) = $Val$}\index{\texttt{acos/1}}
+   \item \texttt{acosh($X$) = $Val$}\index{\texttt{acosh/1}} 
+   \item \texttt{acot($X$) = $Val$}\index{\texttt{acot/1}}
+   \item \texttt{acoth($X$) = $Val$}\index{\texttt{acoth/1}} 
+   \item \texttt{acsc($X$) = $Val$}\index{\texttt{acsc/1}} 
+   \item \texttt{acsch($X$) = $Val$}\index{\texttt{acsch/1}} 
+   \item \texttt{asec($X$) = $Val$}\index{\texttt{asec/1}}
+   \item \texttt{asech($X$) = $Val$}\index{\texttt{asech/1}} 
    \item \texttt{asin($X$) = $Val$}\index{\texttt{asin/1}}
+   \item \texttt{asinh($X$) = $Val$}\index{\texttt{asinh/1}} 
    \item \texttt{atan($X$) = $Val$}\index{\texttt{atan/1}}
    \item \texttt{atan2($X$,$Y$) = $Val$}\index{\texttt{atan2/2}}
+   \item \texttt{atanh($X$) = $Val$}\index{\texttt{atanh/1}} 
    \item \texttt{ceiling($X$) = $Val$}\index{\texttt{ceiling/1}} 
    \item \texttt{cos($X$) = $Val$}\index{\texttt{cos/1}} 
+   \item \texttt{cosh($X$)  = $Val$}\index{\texttt{cosh/1}} 
+   \item \texttt{cot($X$) = $Val$}\index{\texttt{cot/1}}
+   \item \texttt{coth($X$)  = $Val$}\index{\texttt{coth/1}} 
+   \item \texttt{csc($X$) = $Val$}\index{\texttt{csc/1}}
+   \item \texttt{csch($X$)  = $Val$}\index{\texttt{csch/1}} 
    \item \texttt{e() = 2.71828182845904523536}\index{\texttt{e}} 
    \item \texttt{even($Int$)} \index{\texttt{even/1}}
    \item \texttt{exp($X$) = $Val$}\index{\texttt{exp/1}} 
-   \item \texttt{gcd($A$,$B$) = $Val$}\index{\texttt{gcd/2}} 
    \item \texttt{floor($X$) = $Val$}\index{\texttt{floor/1}} 
-   \item \texttt{frand() = $Val$}\index{\texttt{frand/0}} 
+   \item \texttt{frand() = $Val$}\index{\texttt{frand/0}}
+   \item \texttt{frand($Low$,$High$) = $Val$}\index{\texttt{frand/2}}    
+   \item \texttt{gcd($A$,$B$) = $Val$}\index{\texttt{gcd/2}} 
    \item \texttt{log($X$) = $Val$}\index{\texttt{log/1}}
    \item \texttt{log(B,$X$) = $Val$}\index{\texttt{log/2}} 
    \item \texttt{log10($X$) = $Val$}\index{\texttt{log10/1}} 
@@ -301,30 +326,32 @@ January 14, 2013 \\
    \item \texttt{primes($Int$) = $List$} \index{\texttt{primes/1}}
    \item \texttt{rand\_max() = $Val$}\index{\texttt{rand\_max/0}} 
    \item \texttt{random = $Val$}\index{\texttt{random/0}} 
+   \item \texttt{random($Low$,$High$) = $Val$}\index{\texttt{random/2}} 
    \item \texttt{random($Seed$) = $Val$}\index{\texttt{random/1}} 
    \item \texttt{random2() = $Int$} \index{\texttt{random2/0}}
    \item \texttt{round($X$) = $Val$}\index{\texttt{round/1}}
+   \item \texttt{sec($X$) = $Val$}\index{\texttt{sec/1}}
+   \item \texttt{sech($X$) = $Val$}\index{\texttt{sech/1}} 
    \item \texttt{sign($X$) = $Val$}\index{\texttt{sign/1}}  
    \item \texttt{sin($X$) = $Val$}\index{\texttt{sin/1}} 
+   \item \texttt{sinh($X$) = $Val$}\index{\texttt{sinh/1}} 
    \item \texttt{sqrt($X$) = $Val$}\index{\texttt{sqrt/1}} 
    \item \texttt{tan($X$) = $Val$}\index{\texttt{tan/1}}
+   \item \texttt{tanh($X$) = $Val$}\index{\texttt{tanh/1}} 
+   \item \texttt{to\_degrees($Radian$) = $Degree$}\index{\texttt{to\_degrees/1}} 
+   \item \texttt{to\_radians($Degree$) = $Radian$}\index{\texttt{to\_radians/1}}
    \item \texttt{truncate($X$) = $Val$}\index{\texttt{truncate/1}}  
-%   \item \texttt{radians($Degree$) = $Radian$}\index{\texttt{radians/1}}
-%   \item \texttt{degrees($Radian$) = $Degree$}\index{\texttt{degrees/1}} 
 %   \item \texttt{inf}\index{\texttt{inf}}
 %   \item \texttt{acosh($X$) = $Val$}\index{\texttt{acosh/1}}
 %   \item \texttt{asinh($X$) = $Val$}\index{\texttt{asinh/1}}
 %   \item \texttt{atanh($X$) = $Val$}\index{\texttt{atanh/1}} 
 %   \item \texttt{cbrt($X$) = $Val$}\index{\texttt{cbrt/1}}
 %   \item \texttt{cosh($X$) = $Val$}\index{\texttt{cosh/1}} 
-%   \item \texttt{cot($X$) = $Val$}\index{\texttt{cot/1}}
 %   \item \texttt{coth($X$) = $Val$}\index{\texttt{coth/1}}
-%   \item \texttt{csc($X$) = $Val$}\index{\texttt{csc/1}}
 %   \item \texttt{ninf}\index{\texttt{ninf}}
 %   \item \texttt{nthrt($N$,$X$) = $Val$}\index{\texttt{nthrt/2}}
 %   \item \texttt{randrange($From$,$Step$,$To$) = $Val$}\index{\texttt{randrange/3}}  
 %   \item \texttt{randrange($From$,$To$) = $Val$}\index{\texttt{randrange/2}}  
-%   \item \texttt{sec($X$) = $Val$}\index{\texttt{sec/1}}
 %   \item \texttt{sech($X$) = $Val$}\index{\texttt{sech/1}} 
 %   \item \texttt{sinh($X$) = $Val$}\index{\texttt{sinh/1}} 
 %   \item \texttt{tanh($X$) = $Val$}\index{\texttt{tanh/1}}
@@ -505,7 +532,7 @@ January 14, 2013 \\
 \end{itemize}
 \end{scriptsize}
 
-\section*{Modules \texttt{cp}, \texttt{sat}, and \texttt{mip}}
+\section*{Modules \texttt{cp}, \texttt{sat}, \texttt{smt}, and \texttt{mip}}
 \begin{scriptsize}
 \begin{itemize}
     \item {\tt \verb+#~+$X$}
@@ -530,6 +557,7 @@ January 14, 2013 \\
 \item \texttt{at\_least($N$,$L$,$V$)}:\index{\texttt{atleast/3}}
 \item \texttt{at\_most($N$,$L$,$V$)}:\index{\texttt{atmost/3}} 
 \item \texttt{circuit($FDVars$)}\index{\texttt{circuit/1}}
+\item \texttt{count($V$,$FDVars$,$N$)}\index{\texttt{count/3}}
 \item \texttt{count($V$,$FDVars$,$Rel$,$N$)}\index{\texttt{count/4}}
 \item \texttt{cumulative($Ss$,$Ds$,$Rs$,$Limit$)}\index{\texttt{cumulative/4}}
 \item \texttt{decreasing($L$)}\index{\texttt{decreasing/1}}
@@ -582,21 +610,25 @@ January 14, 2013 \\
 \begin{scriptsize}
 \begin{itemize}
 \item \texttt{best\_plan($S$,$Limit$,$Plan$)}\index{\texttt{best\_plan/3}}
-\item \texttt{best\_plan($S$,$Plan$,$PlanCost$)}
 \item \texttt{best\_plan($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{best\_plan/4}}
 \item \texttt{best\_plan($S$,$Plan$)}\index{\texttt{best\_plan/2}}
+\item \texttt{best\_plan($S$,$Plan$,$PlanCost$)}
 \item \texttt{best\_plan\_bb($S$,$Limit$,$Plan$)}\index{\texttt{best\_plan\_bb/3}}
-\item \texttt{best\_plan\_bb($S$,$Plan$,$PlanCost$)}
 \item \texttt{best\_plan\_bb($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_bb/4}}
 \item \texttt{best\_plan\_bb($S$,$Plan$)}\index{\texttt{best\_plan\_bb/2}}
+\item \texttt{best\_plan\_bb($S$,$Plan$,$PlanCost$)}
+\item \texttt{best\_plan\_bin($S$,$Limit$,$Plan$)}\index{\texttt{best\_plan\_bin/3}}
+\item \texttt{best\_plan\_bin($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_bin/4}}
+\item \texttt{best\_plan\_bin($S$,$Plan$)}\index{\texttt{best\_plan\_bin/2}}
+\item \texttt{best\_plan\_bin($S$,$Plan$,$PlanCost$)}
 \item \texttt{best\_plan\_nondet($S$,$Limit$,$Plan$)}\index{\texttt{best\_plan\_nondet/3}} (nondet)
-\item \texttt{best\_plan\_nondet($S$,$Plan$,$PlanCost$)} (nondet)
 \item \texttt{best\_plan\_nondet($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_nondet/4}} (nondet)
 \item \texttt{best\_plan\_nondet($S$,$Plan$)}\index{\texttt{best\_plan\_nondet/2}} (nondet)
+\item \texttt{best\_plan\_nondet($S$,$Plan$,$PlanCost$)} (nondet)
 \item \texttt{best\_plan\_unbounded($S$,$Limit$,$Plan$)}\index{\texttt{best\_plan\_unbounded/3}}
-\item \texttt{best\_plan\_unbounded($S$,$Plan$,$PlanCost$)}
 \item \texttt{best\_plan\_unbounded($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_unbounded/4}}
 \item \texttt{best\_plan\_unbounded($S$,$Plan$)}\index{\texttt{best\_plan\_unbounded/2}}
+\item \texttt{best\_plan\_unbounded($S$,$Plan$,$PlanCost$)}
 \item \texttt{current\_plan()=$Plan$}\index{\texttt{current\_plan/0}}
 \item \texttt{current\_resource()=$Amount$}\index{\texttt{current\_resource/0}}
 \item \texttt{current\_resource\_plan\_cost($Amount$,$Plan$,$Cost$)}\index{\texttt{current\_resource\_plan\_cost/3}}
@@ -604,10 +636,11 @@ January 14, 2013 \\
 \item \texttt{plan($S$,$Limit$,$Plan$)}\index{\texttt{plan/3}}
 \item \texttt{plan($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{plan/4}}
 \item \texttt{plan($S$,$Plan$)}\index{\texttt{plan/2}}
+\item \texttt{plan($S$,$Plan$,$PlanCost$)}\index{\texttt{plan/3}}
 \item \texttt{plan\_unbounded($S$,$Limit$,$Plan$)}\index{\texttt{plan\_unbounded/3}}
-\item \texttt{plan\_unbounded($S$,$Plan$,$PlanCost$)}
 \item \texttt{plan\_unbounded($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{plan\_unbounded/4}}
 \item \texttt{plan\_unbounded($S$,$Plan$)}\index{\texttt{plan\_unbounded/2}}
+\item \texttt{plan\_unbounded($S$,$Plan$,$PlanCost$)}
 \end{itemize}
 \end{scriptsize}
 
@@ -722,15 +755,18 @@ January 14, 2013 \\
 \begin{scriptsize}
 \begin{itemize}
     \item \texttt{abort}\index{\texttt{abort/0}}
+    \item \texttt{cl}\index{\texttt{cl/0}}
     \item \texttt{cl($File$)}\index{\texttt{cl/1}}
     \item \texttt{cl\_facts($Facts$)}\index{\texttt{cl\_facts/1}}
-    \item \texttt{cl}\index{\texttt{cl/0}}
+    \item \texttt{cl\_facts($Facts$,$IndexInfo$)}\index{\texttt{cl\_facts/2}}    
+    \item \texttt{cl\_facts\_table($Facts$)}\index{\texttt{cl\_facts\_table/1}}
+    \item \texttt{cl\_facts\_table($Facts$,$IndexInfo$)}\index{\texttt{cl\_facts\_table/1}}
     \item \texttt{command($String$)}\index{\texttt{command/1}}
     \item \texttt{compile($File$)}\index{\texttt{compile/1}}
     \item \texttt{debug}\index{\texttt{debug/0}}
     \item \texttt{exit}\index{\texttt{exit/0}} 
-    \item \texttt{garbage\_collect(Size)}\index{\texttt{garbage\_collect/1}} 
     \item \texttt{garbage\_collect}\index{\texttt{garbage\_collect/0}} 
+    \item \texttt{garbage\_collect(Size)}\index{\texttt{garbage\_collect/1}} 
     \item \texttt{halt}\index{\texttt{halt/0}} 
     \item \texttt{initialize\_table}\index{\texttt{initialize\_table/0}}
     \item \texttt{load($File$)}\index{\texttt{load/1}}
@@ -739,8 +775,8 @@ January 14, 2013 \\
     \item \texttt{nospy}\index{\texttt{nospy}}
     \item \texttt{notrace}\index{\texttt{notrace}}
     \item \texttt{spy $Functor$}\index{\texttt{spy/1}}
-    \item \texttt{statistics($Name$,$Value$)}\index{\texttt{statistics/2}} (nondet) 
     \item \texttt{statistics}\index{\texttt{statistics/0}}
+    \item \texttt{statistics($Name$,$Value$)}\index{\texttt{statistics/2}} (nondet) 
     \item \texttt{time($Goal$)}\index{\texttt{time/1}}
     \item \texttt{time2($Goal$)} \index{\texttt{time2/1}}
     \item \texttt{time\_out($Goal$,$Limit$,$Res$)}\index{\texttt{time\_out/3}}
@@ -761,30 +797,32 @@ January 14, 2013 \\
 \begin{scriptsize}
 \begin{itemize}
 %    \item \texttt{ = } \index{\texttt{/}}
-    \item \texttt{array\_matrix\_to\_list($Matrix$) = $List$} \index{\texttt{array\_matrix\_to\_list/1}}
-    \item \texttt{array\_matrix\_to\_list\_matrix($AMatrix$) = $LMatrix$} \index{\texttt{array\_matrix\_to\_list\_matrix/1}}
-    \item \texttt{find($String$,$SubString$,$From$,$To$)} \index{\texttt{find/4}} (nondet)
-    \item \texttt{find\_first\_of($Term$,$Pattern$) = $Index$} \index{\texttt{find\_first\_of/2}}
-    \item \texttt{find\_ignore\_case($String$,$SubString$,$From$,$To$)} \index{\texttt{find\_ignore\_case/4}} (nondet)
-    \item \texttt{find\_last\_of($Term$,$Pattern$) = $Index$} \index{\texttt{find\_last\_of/2}}
-    \item \texttt{join($Words$) = $String$} \index{\texttt{join/1}}
-    \item \texttt{join($Words$,$Separator$) = $String$} \index{\texttt{join/2}}
+    \item \texttt{array\_matrix\_to\_list($Matrix$) = $List$}\index{\texttt{array\_matrix\_to\_list/1}}
+    \item \texttt{array\_matrix\_to\_list\_matrix($AMatrix$) = $LMatrix$}\index{\texttt{array\_matrix\_to\_list\_matrix/1}}
+    \item \texttt{chunks\_of($List$,$K$) = $ListOfLists$}\index{\texttt{chunks\_of/2}}
+    \item \texttt{find($String$,$SubString$,$From$,$To$)}\index{\texttt{find/4}} (nondet)
+    \item \texttt{find\_first\_of($Term$,$Pattern$) = $Index$}\index{\texttt{find\_first\_of/2}}
+    \item \texttt{find\_ignore\_case($String$,$SubString$,$From$,$To$)}\index{\texttt{find\_ignore\_case/4}} (nondet)
+    \item \texttt{find\_last\_of($Term$,$Pattern$) = $Index$}\index{\texttt{find\_last\_of/2}}
+    \item \texttt{join($Words$) = $String$}\index{\texttt{join/1}}
+    \item \texttt{join($Words$,$Separator$) = $String$}\index{\texttt{join/2}}
     \item \texttt{list\_matrix\_to\_array\_matrix($LMatrix$) = $AMatrix$} \index{\texttt{list\_matrix\_to\_array\_matrix/1}}
-    \item \texttt{lstrip($List$) = $List$ } \index{\texttt{lstrip/1}}
-    \item \texttt{lstrip($List$,$Elms$) = $List$ } \index{\texttt{lstrip/2}}
-    \item \texttt{matrix\_multi($MatrixA$,$MatrixB$) = $MatrixC$} \index{\texttt{matrix\_multi/2}}
-    \item \texttt{permutation($List$,$Perm$)} \index{\texttt{permutation/2}} (nondet)
-    \item \texttt{permutations($List$) = $Lists$} \index{\texttt{perm/1}}
-    \item \texttt{power\_set($List$) = $Lists$} \index{\texttt{power\_set/1}}
-    \item \texttt{replace($Term$,$Old$,$New$) = $NewTerm$} \index{\texttt{replace/3}}
-    \item \texttt{replace\_at($Term$,$Index$,$New$) = $NewTerm$} \index{\texttt{replace\_at/3}}
+    \item \texttt{lstrip($List$) = $List$ }\index{\texttt{lstrip/1}}
+    \item \texttt{lstrip($List$,$Elms$) = $List$ }\index{\texttt{lstrip/2}}
+    \item \texttt{matrix\_multi($MatrixA$,$MatrixB$) = $MatrixC$}\index{\texttt{matrix\_multi/2}}
+    \item \texttt{permutation($List$,$Perm$)}\index{\texttt{permutation/2}} (nondet)
+    \item \texttt{permutations($List$) = $Lists$}\index{\texttt{perm/1}}
+    \item \texttt{power\_set($List$) = $Lists$}\index{\texttt{power\_set/1}}
+    \item \texttt{replace($Term$,$Old$,$New$) = $NewTerm$}\index{\texttt{replace/3}}
+    \item \texttt{replace\_at($Term$,$Index$,$New$) = $NewTerm$}\index{\texttt{replace\_at/3}}
     \item \texttt{rstrip($List$) = $List$ } \index{\texttt{rstrip/1}}
-    \item \texttt{rstrip($List$,$Elms$) = $List$ } \index{\texttt{rstrip/2}}
+    \item \texttt{rstrip($List$,$Elms$) = $List$ }\index{\texttt{rstrip/2}}
     \item \texttt{split($List$) = $Words$ } \index{\texttt{split/1}}
-    \item \texttt{split($List$,$Separators$) = $Words$ } \index{\texttt{split/2}}
-    \item \texttt{strip($List$) = $List$ } \index{\texttt{strip/1}}
+    \item \texttt{split($List$,$Separators$) = $Words$ }\index{\texttt{split/2}}
+    \item \texttt{strip($List$) = $List$ }\index{\texttt{strip/1}}
     \item \texttt{strip($List$,$Elms$) = $List$ } \index{\texttt{strip/2}}
-    \item \texttt{transpose($Matrix$) = $Transposed$} \index{\texttt{transpose/1}}
+    \item \texttt{take($List$,$K$) = $List$}\index{\texttt{take/2}} 
+    \item \texttt{transpose($Matrix$) = $Transposed$}\index{\texttt{transpose/1}}
 \end{itemize}
 \end{scriptsize}
 
