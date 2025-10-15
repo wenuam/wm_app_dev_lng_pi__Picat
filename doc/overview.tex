@@ -298,7 +298,7 @@ qsort([H|T]) =
 \end{verbatim}
 Function facts\index{function fact} are automatically indexed on all of the input arguments, and hence no index declaration\index{index declaration} is necessary. Note that while a predicate\index{predicate} call with no argument does not need parentheses, a function\index{function} call with no argument must be followed with parentheses, unless the function\index{function} is module-quantified, as in \texttt{math.pi}.
 
-The \texttt{fib} function can also be defined as follows:
+The \texttt{fib} function can also be defined as follows:\index{\texttt{cond}}
 \begin{verbatim}
 fib(N) = cond((N = 0; N = 1), 1, fib(N-1)+fib(N-2)).
 \end{verbatim}

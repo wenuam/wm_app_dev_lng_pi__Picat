@@ -85,6 +85,7 @@ import common_constr.
 
 include "cp_sat_mip_smt.pi". % common built-ins for cp, sat, mip, and smt
 include "sat_mip_smt.pi".
+include "sat_bv.pi".
 
 '::'(Vars,Domain) =>
     bp.'_$_picat_in'(sat,Vars,Domain).

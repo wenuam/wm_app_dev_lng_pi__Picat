@@ -535,6 +535,22 @@ January 14, 2013 \\
 \item \texttt{assignment($FDVars1$,$FDVars2$)}
 \item \texttt{at\_least($N$,$L$,$V$)}:
 \item \texttt{at\_most($N$,$L$,$V$)}: 
+\item \texttt{bv\_add($A$,$B$,$C$)} (sat only)
+\item \texttt{bv\_and($A$,$B$,$C$)} (sat only)
+\item \texttt{bv\_div($A$,$B$,$C$)} (sat only)
+\item \texttt{bv\_drop($A$,$N$)} (sat only)
+\item \texttt{bv\_eq($A$,$B$)} (sat only)
+\item \texttt{bv\_ge($A$,$B$)} (sat only)
+\item \texttt{bv\_gt($A$,$B$)} (sat only)
+\item \texttt{bv\_mod($A$,$B$,$C$)} (sat only)
+\item \texttt{bv\_mul($A$,$B$,$C$)} (sat only)
+\item \texttt{bv\_neq($A$,$B$)} (sat only)
+\item \texttt{bv\_or($A$,$B$,$C$)} (sat only)
+\item \texttt{bv\_pow($A$,$B$,$C$)} (sat only)
+\item \texttt{bv\_sum($As$,$B$)} (sat only)
+\item \texttt{bv\_take($A$,$N$)} (sat only)
+\item \texttt{bv\_to\_int($A$)} (sat only)
+\item \texttt{bv\_xor($A$,$B$,$C$)} (sat only)
 \item \texttt{circuit($FDVars$)}
 \item \texttt{count($V$,$FDVars$,$N$)}
 \item \texttt{count($V$,$FDVars$,$Rel$,$N$)}
@@ -569,11 +585,13 @@ January 14, 2013 \\
 \item \texttt{increasing\_strict($L$)}
 \item \texttt{indomain($Var$)} (nondet) (cp only)
 \item \texttt{indomain\_down($Var$)} (nondet) (cp only)
+\item \texttt{int\_to\_bv($C$)} (sat only)
 \item \texttt{lex\_le($L_1$,$L_2$)}
 \item \texttt{lex\_lt($L_1$,$L_2$)}
 \item \texttt{matrix\_element($Matrix$,$I$,$J$,$V$)}
 \item \texttt{matrix\_element0($Matrix$,$I$,$J$,$V$)}
 \item \texttt{neqs($NeqList$)} (cp only)
+\item \texttt{new\_bv($N$)} (sat only)
 \item \texttt{new\_dvar() = $FDVar$}
 \item \texttt{new\_fd\_var() = $FDVar$}
 \item \texttt{path($Vs$,$Es$,$Src$,$Dest$)}
@@ -592,8 +610,8 @@ January 14, 2013 \\
 \item \texttt{solve($Vars$)} (nondet)
 \item \texttt{solve\_all($Opts$,$Vars$) = $List$}
 \item \texttt{solve\_all($Vars$) = $List$}
-\item \texttt{solve\_suspended} (cp only)
 \item \texttt{solve\_suspended($Opt$)} (cp only)
+\item \texttt{solve\_suspended} (cp only)
 \item \texttt{subcircuit($FDVars$)}
 \item \texttt{subcircuit\_grid($A$)}
 \item \texttt{subcircuit\_grid($A$,$K$)}
@@ -601,6 +619,7 @@ January 14, 2013 \\
 \item \texttt{table\_notin($DVars$,$R$)}
 \item \texttt{tree($Vs$,$Es$)}
 \item \texttt{tree($Vs$,$Es$,$K$)}
+
 \end{itemize}
 \end{scriptsize}
 \section*{Module \texttt{planner}}  

@@ -11,7 +11,7 @@
 
 }
 \chapter{\label{ch:constraints}Constraints}
-Picat provides four solver modules, including \texttt{cp}, \texttt{sat}, \texttt{smt}, and \texttt{mip}, for modeling and solving constraint\index{constraint} satisfaction and optimization problems (CSPs).  All four of these modules implement the same set of constraints on integer-domain variables. The \texttt{mip} module also supports real-domain variables. In order to use a solver, users must first import the module. In order to make the symbols defined in a module available to the top level of the interpreter, users can use the built-in {\tt import} to import the module. The \texttt{mip} module requires Gurobi (\url{http://www.gurobi.com/}), Cbc (\url{ https://github.com/coin-or/Cbc}), or GLPK (\url{https://www.gnu.org/software/glpk/}). The \texttt{smt} module requires Z3 (\url{https://github.com/Z3Prover/z3/}) or CVC4 (\url{https://cvc4.github.io/}). Users can specify, as a solving option, a solver to be used if the module is \texttt{mip} or \texttt{smt}.
+Picat provides four solver modules, including \texttt{cp}, \texttt{sat}, \texttt{smt}, and \texttt{mip}, for modeling and solving constraint\index{constraint} satisfaction and optimization problems (CSPs).  All four of these modules implement the same set of constraints on integer-domain variables. The \texttt{mip} module also supports real-domain variables. In order to use a solver, users must first import the module. In order to make the symbols defined in a module available to the top level of the interpreter, users can use the built-in {\tt import} to import the module. The \texttt{mip} module requires Gurobi (\url{https://www.gurobi.com/}), Cbc (\url{ https://github.com/coin-or/Cbc}), or GLPK (\url{https://www.gnu.org/software/glpk/}). The \texttt{smt} module requires Z3 (\url{https://github.com/Z3Prover/z3/}) or CVC4 (\url{https://cvc4.github.io/}). Users can specify, as a solving option, a solver to be used if the module is \texttt{mip} or \texttt{smt}.
 
 As the four modules have the same interface, this chapter describes the four modules together. Figure \ref{tab:cons_ops} shows the constraint\index{constraint} operators that are provided by Picat. Unless it is explicitly specified otherwise, the built-ins that are described in this chapter appear in all four modules. In the built-ins that are presented in this chapter, an integer-domain variable can also be an integer, unless it is explicitly specified to only be a variable.
 
@@ -393,6 +393,30 @@ Note that there is an edge between each pair of neighboring cells in the resulti
 \item \texttt{tree($Vs$,$Es$)}\index{\texttt{tree/2}}: This constraint ensures that the \textit{undirected}\index{undirected graph} graph represented by $Vs$ and $Es$ is a tree, where $Vs$ is a list of pairs of the form $\{V,B\}$, and $Es$ is a list of triplets of the form $\{V_1,V_2,B\}$. A pair $\{V,B\}$ in $Vs$, where $V$ is a ground term and $B$ is a Boolean variable, denotes that $V$ is in the tree if and only if $B = 1$. A triplet $\{V_1,V_2,B\}$ denotes that $V_1$ is connected with $V_2$  by an edge in the tree if and only if $B = 1$ and both $V_1$ and $V_2$ are in the tree. Note that the graph to be constructed is assumed to be undirected. If there exists a triplet $\{V_1,V_2,B\}$ in $Es$, then the triplet $\{V_2,V_1,B\}$ will be added to $Es$ if it is not specified.
 
 \item \texttt{tree($Vs$,$Es$,$K$)}\index{\texttt{tree/3}}:  This constraint is the same as \texttt{tree($Vs$,$Es$)}, except that it also constrains the number of vertices in the tree to be $K$. 
+\end{itemize}
+
+\section{Bit-Vector Constraints (sat only)}
+The \texttt{sat} module supports bit-vector constraints, which enhance modeling capabilities, improve solving performance, and support large integers that exceed the bounds of domain values. A bit vector is an array representing the binary form of an unsigned integer. Let $V$ be a bit vector of length $N$. The bit $V[1]$ corresponds to the least significant bit, while $V[N]$ represents the most significant bit. In a bit-vector constraint, a bit-vector argument may also be a non-negative integer. If the argument is a non-negative integer, Picat automatically converts it to its binary representation. 
+
+\begin{itemize}
+\item \texttt{bv\_add($A$,$B$,$C$)}\index{\texttt{bv\_add/3}}: Forces bit-vector $C$ to be the sum of bit-vectors $A$ and $B$.
+\item \texttt{bv\_and($A$,$B$,$C$)}\index{\texttt{bv\_and/3}}: Forces bit-vector $C$ to be the bitwise \textit{and} of bit-vectors $A$ and $B$.
+\item \texttt{bv\_div($A$,$B$,$C$)}\index{\texttt{bv\_div/3}}: Forces bit-vector $C$ to be the quotient of $A$ divided by $B$ ($C\ =\ A\ div\ B$).
+\item \texttt{bv\_drop($A$,$N$)}\index{\texttt{bv\_drop/2}}: Returns a bit vector containing the remaining bits of bit-vector $A$ after dropping the lowest $N$ bits.
+\item \texttt{bv\_eq($A$,$B$)}\index{\texttt{bv\_eq/2}}: Forces equality between bit-vector $A$ and bit-vector $B$.
+\item \texttt{bv\_ge($A$,$B$)}\index{\texttt{bv\_ge/2}}: Forces bit-vector $A$ to be greater than or equal to bit-vector $B$ ($A\ \ge\ B$).
+\item \texttt{bv\_gt($A$,$B$)}\index{\texttt{bv\_gt/2}}: Forces bit-vector $A$ to be greater than bit-vector $B$ ($A\ >\ B$).
+\item \texttt{bv\_mod($A$,$B$,$C$)}\index{\texttt{bv\_mod/3}}: Forces bit-vector $C$ to be the remainder of $A$ divided by $B$ ($C\ =\ A\ mod\ B$).
+\item \texttt{bv\_mul($A$,$B$,$C$)}\index{\texttt{bv\_mul/3}}: Forces bit-vector $C$ to be the product of multiplying $A$ and $B$.
+\item \texttt{bv\_neq($A$,$B$)}\index{\texttt{bv\_neq/2}}: Forces inequality between bit-vector $A$ and bit-vector $B$ ($A\ \neq\ B$).
+\item \texttt{bv\_or($A$,$B$,$C$)}\index{\texttt{bv\_or/3}}: Forces bit-vector $C$ to be the bitwise \textit{or} of bit-vectors $A$ and $B$.
+\item \texttt{bv\_pow($A$,$B$,$C$)}\index{\texttt{bv\_pow/3}}: Forces bit-vector $C$ to be $A$ raised to the power of $B$ ($C\ =\ A^B$).
+\item \texttt{bv\_sum($As$,$B$)}\index{\texttt{bv\_sum/2}}: Forces the sum of bit-vectors in $As$ to be equal to bit-vector $B$, where $As$ is a list of bit vectors.
+\item \texttt{bv\_take($A$,$N$)}\index{\texttt{bv\_take/2}}: Returns a bit vector containing the lowest $N$ bits of bit-vector $A$.
+\item \texttt{bv\_to\_int($A$)}\index{\texttt{bv\_to\_int/1}}: Returns an integer represented by bit-vector $A$. This function throws an exception if $A$ is not ground.
+\item \texttt{bv\_xor($A$,$B$,$C$)}\index{\texttt{bv\_xor/3}}: Forces bit-vector $C$ to be the bitwise \textit{xor} of bit-vectors $A$ and $B$.
+\item \texttt{int\_to\_bv($C$)}\index{\texttt{int\_to\_bv/1}}: Returns the binary representation of integer $C$ as a bit vector.
+\item \texttt{new\_bv($N$)}\index{\texttt{new\_bv/1}}: Returns a bit vector of length $N$.
 \end{itemize}
 
 \section{Solver Invocation}
