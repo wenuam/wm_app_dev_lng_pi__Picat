@@ -212,10 +212,10 @@ The \texttt{basic} module provides the following built-ins on lists, most of whi
 \item \texttt{reverse($List$) = $ResList$}\index{\texttt{reverse/1}}: This function reverses the order of the elements in $List$, returning the result in $ResList$. 
 \item \texttt{select($X$,$List$,$ResList$)}\index{\texttt{select/3}} (nondet): This predicate nondeterministically selects an element $X$ from $List$, and binds $ResList$ to the list after $X$ is removed. On backtracking, it selects the next element.
 \item \texttt{sort($List$) = $SList$}\index{\texttt{sort/1}}: This function sorts the elements of $List$ in ascending order, returning the result in $SList$. 
-\item \texttt{sort($List$,$KeyIndex$) = $SList$}\index{\texttt{sort/2}}: This function sorts the elements of $List$ by the key index $KeyIndex$ in ascending order, returning the result in $SList$. The elements of $List$ must be compound values and $KeyIndex$ must be a positive integer that does not exceed the length of any of the elements of $List$. This function is defined as follows:
+\item \texttt{sort($List$,$KeyIndex$) = $SList$}\index{\texttt{sort/2}}: This function sorts the elements of $List$ by the key index $KeyIndex$ in ascending order, returning the result in $SList$. The elements of $List$ must be compound values and $KeyIndex$ must be a positive integer that does not exceed the length of any of the elements of $List$. In particular, if an element is a list, then $KeyIndex$ must be either 1 or 2. This function is defined as follows:
 \begin{verbatim}
     sort(List,KeyIndex) = SList =>
-        List1 = [(E[KeyIndex],E) : E in List],
+        List1 = [(A, E) : E in List, arg(KeyIndex,E,A)],
         List2 = sort(List1),
         SList = [E : (_,E) in List2].
 \end{verbatim}
