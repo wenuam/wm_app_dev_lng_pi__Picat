@@ -11,7 +11,7 @@
 }
 \chapter{How to Use the Picat System}
 \section{How to Use the Picat Interpreter}
-The Picat system is written in both C and Picat. The Picat interpreter is provided as a single standalone executable file, named \texttt{picat.exe} for Windows and \texttt{picat} for Unix. The Picat interpreter provides an interactive programming environment for users to compile, load, debug, and execute programs. In order to start the Picat interpreter, users first need to open an OS terminal. In Windows, this can be done by selecting \verb+Start->Run+ and typing \verb+cmd+ or selecting \verb+Start->Programs->Accessories->Command Prompt+.  In order to start the Picat interpreter in any working directory, the environment variable \texttt{path} must be properly set to contain the directory where the executable is located.
+The Picat system is written in both C and Picat. The Picat interpreter is provided as a single standalone executable file, named \texttt{picat.exe} for Windows and \texttt{picat} for Unix. The Picat interpreter provides an interactive programming environment for users to compile, load, debug, and execute programs. In order to start the Picat interpreter, users first need to open an OS terminal. In Windows, this can be done by selecting \verb+Start -> Run+ and typing \verb+cmd+ or selecting \verb+Start -> Programs -> Accessories -> Command Prompt+.  In order to start the Picat interpreter in any working directory, the environment variable \texttt{path} must be properly set to contain the directory where the executable is located.
 
 \subsection{How to Enter and Quit the Picat Interpreter}
 The Picat interpreter is started with the OS command \texttt{picat}\index{\texttt{picat}}. 
@@ -28,6 +28,8 @@ aa \= aaa \= aaa \= aaa \= aaa \= aaa \= aaa \kill
 \end{tabbing}
 where $PicatMainFileName$ can have the extension \texttt{.pi} and can contain a path of directories, and $Opts$ is a sequence of options of the following:
 \begin{itemize}
+\item \texttt{-d}: This option puts Picat in debug mode after Picat is started. In debug mode, execution can be traced, and the stack trace is printed once an error occurs.
+
 \item \texttt{-g $InitGoal$}: This option makes Picat execute a specified initial query $InitGoal$ rather than the default \texttt{main} predicate.
 
 \item \texttt{--help}: Print out the help info.
@@ -68,7 +70,7 @@ The \texttt{picat} command can also be used to run a program directly. Consider 
 
     main(Args) =>
         printf("hello picat"),
-        foreach(Arg in Args)
+        foreach (Arg in Args)
             printf(" %s",Arg)
         end,
         nl.
@@ -177,9 +179,9 @@ yes
 Users can ask the system to find the next solution by typing \texttt{';'} after a solution if the query has multiple solutions. For example,
 \begin{verbatim}
     Picat> member(X,[1,2,3])
-    X=1;
-    X=2;
-    X=3;
+    X = 1;
+    X = 2;
+    X = 3;
     no
 \end{verbatim}
 Users can force a program to terminate by typing \texttt{ctrl-c}, or by letting it execute the built-in predicate \texttt{abort}\index{\texttt{abort/0}}. Note that when the system is engaged in certain tasks, such as garbage collection, users may need to wait for a while in order to see the termination after they type \texttt{ctrl-c}.
@@ -234,7 +236,7 @@ Assume the program is stored in a file named \texttt{myprog.pi}. The following s
  Picat> cl(myprog)
 
  {Trace mode}
- Picat> p(X),q(Y)  
+ Picat> p(X), q(Y)  
     Call: (1) p(_328) ?
     Exit: (1) p(a) 
     Call: (2) q(_378) ?

@@ -23,6 +23,12 @@ aa \= aaa \= aaa \= aaa \= aaa \= aaa \= aaa \kill
 \end{tabbing}
 where $File$ (with or without the extension \texttt{.pi}) is the main file name of the program. The program must define a predicate named \texttt{main/0} or \texttt{main/1}.\footnote{This document occasionally uses the notation $F/N$ when referring to predicates and functions.  When this notation is used, it refers to the predicate or function that is called $F$, which has $N$ arguments.} If the command line contains arguments after the file name, then \texttt{main/1} is executed. Otherwise, if the file name is not followed by any arguments, then \texttt{main/0} is executed. When \texttt{main/1} executed, all of the arguments after the file name are passed to the predicate as a list of strings.
 
+The \texttt{picat} command accepts several options, which specify an initial setting for the interpreter. For example, the option \texttt{-d} starts the interpreter in debug mode, enabling tracing:
+\begin{tabbing}
+aa \= aaa \= aaa \= aaa \= aaa \= aaa \= aaa \kill
+\> \> $OSPrompt$ \texttt{picat -d}
+\end{tabbing}
+
 \ignore{
 The OS command \texttt{picatc}\index{\texttt{picatc}} compiles a file (with extension name \texttt{pi}) and all of its dependent files into bytecode files (with extension name \texttt{qi}), and the OS command \texttt{picate}\index{\texttt{picate}} executes a Picat program as a standalone application.\footnote{The executables \texttt{picatc} and \texttt{picate} will be added later.}
 }
@@ -68,7 +74,7 @@ Picat> A = {a,b,c,d}                   % an array
 Picat> A = new_array(3)                % create an array
 A = {_3b0,_3b4,_3b8}
 
-Picat> M = new_map([one=1,two=2])      % create a map
+Picat> M = new_map([one = 1, two = 2]) % create a map
 M =  (map)[two = 2,one = 1]
 
 Picat> M = new_set([one,two,three])    % create a map set
@@ -81,7 +87,7 @@ Picat> X = 1..5
 X = [1,2,3,4,5]
 \end{verbatim}
 
-Picat allows function\index{function} calls in arguments. For this reason, it requires structures\index{structure} to be preceded with a dollar symbol in order for them to be treated as data. Without the dollar symbol, the command \texttt{S=point(1.0,2.0)} would call the function \texttt{point(1.0,2.0)} and bind \texttt{S} to its return value. In order to ensure safe interpretation of meta-terms in higher-order calls\index{higher-order call}, Picat forbids the creation of terms\index{term} that contain structures\index{structure} with the name \texttt{'.'}, index notations, array comprehensions, list comprehensions, and loops.
+Picat allows function\index{function} calls in arguments. For this reason, it requires structures\index{structure} to be preceded with a dollar symbol in order for them to be treated as data. Without the dollar symbol, the command \texttt{S = point(1.0,2.0)} would call the function \texttt{point(1.0,2.0)} and bind \texttt{S} to its return value. In order to ensure safe interpretation of meta-terms in higher-order calls\index{higher-order call}, Picat forbids the creation of terms\index{term} that contain structures\index{structure} with the name \texttt{'.'}, index notations, array comprehensions, list comprehensions, and loops.
 
 For each type, Picat provides a set of built-in functions\index{function} and predicates\index{predicate}. The index notation \texttt{$X$[$I$]}, where $X$ references a compound value\index{compound value} and $I$ is an integer expression or a range in the form $l..u$, is a special function that returns a single component (when $I$ is an integer) or a list of components (when $I$ is a range) of $X$. The index of the first element of a list\index{list} or a structure\index{structure} is 1. In order to facilitate type checking at compile time, Picat does not overload arithmetic operators for other purposes, and requires an index expression to be an integer\index{integer} or an integer range.
 
@@ -118,7 +124,7 @@ no
 Picat> var(X)
 yes
 
-Picat> X=5, var(X)
+Picat> X = 5, var(X)
 no
 
 Picat> 5 != 2+2
@@ -165,7 +171,7 @@ Picat> X.put(one,1), One = X.get(one)
 One = 1
 
 Picat> X = math.pi
-X=3.14159
+X = 3.14159
 
 Picat> S = new_struct(point,3), Name = S.name, Len = S.length
 S = point(_3b0,_3b4,_3b8)
@@ -181,50 +187,51 @@ One = 1
 \end{verbatim}
 
 \section{Defining Predicates}
-A predicate\index{predicate} call either succeeds or fails, unless an exception\index{exception} occurs. A predicate\index{predicate} call can return multiple answers through backtracking. The built-in predicate \texttt{true}\index{\texttt{true}} always succeeds, and the built-in predicate \texttt{fail}\index{\texttt{fail}} (or \texttt{false}\index{\texttt{false}}) always fails. A \emph{goal}\index{goal} is made from predicate\index{predicate} calls and statements, including conjunction ($A,B$), disjunction ($A;B$), negation (not $A$), if-then-else\index{if statement}, \texttt{foreach} loops\index{foreach loop}, and \texttt{while} loops\index{while loop}.
+A predicate\index{predicate} call either succeeds or fails, unless an exception\index{exception} occurs. A predicate\index{predicate} call can return multiple answers through backtracking. The built-in predicate \texttt{true}\index{\texttt{true}} always succeeds, and the built-in predicate \texttt{fail}\index{\texttt{fail}} (or \texttt{false}\index{\texttt{false}}) always fails. A \emph{goal}\index{goal} is made from predicate\index{predicate} calls and statements, including conjunction ($A,B$), disjunction ($A;B$), negation (not $A$), if statement\index{if statement}, \texttt{foreach} loops\index{foreach loop}, and \texttt{while} loops\index{while loop}.
 
 A predicate\index{predicate} is defined with pattern-matching rules. Picat has two types of pattern-matching rules:
 \begin{itemize}
 \item Non-backtrackable rule:\index{non-backtrackable rule} $Head, Cond\ $\verb+=>+$\ Body$.
 \item Backtrackable rule:\index{backtrackable rule} $Head, Cond\ $\verb+?=>+$\ Body$.
 \end{itemize}
-The $Head$ takes the form $p(t_1,\ldots,t_n)$, where $p$ is called the predicate\index{predicate} name, and $n$ is called the arity\index{arity}. When $n=0$, the parentheses can be omitted. The condition $Cond$, which is an optional goal\index{goal}, specifies a condition under which the rule is applicable. For a call $C$, if $C$ matches $Head$ and $Cond$ succeeds, meaning that the condition evaluates to true, the rule is said to be \emph{applicable} to $C$. When applying a rule to call $C$, Picat rewrites $C$ into $Body$. If the used rule is non-backtrackable\index{non-backtrackable rule}, then the rewriting is a commitment, and the program can never backtrack to $C$. If the used rule is backtrackable\index{backtrackable rule}, however, the program will backtrack to $C$ once $Body$ fails, meaning that $Body$ will be rewritten back to $C$, and the next applicable rule will be tried on $C$. 
+The $Head$ takes the form $p(t_1,\ldots,t_n)$, where $p$ is called the predicate\index{predicate} name, and $n$ is called the arity\index{arity}. When $n = 0$, the parentheses can be omitted. The condition $Cond$, which is an optional goal\index{goal}, specifies a condition under which the rule is applicable. For a call $C$, if $C$ matches $Head$ and $Cond$ succeeds, meaning that the condition evaluates to true, the rule is said to be \emph{applicable} to $C$. When applying a rule to call $C$, Picat rewrites $C$ into $Body$. If the used rule is non-backtrackable\index{non-backtrackable rule}, then the rewriting is a commitment, and the program can never backtrack to $C$. If the used rule is backtrackable\index{backtrackable rule}, however, the program will backtrack to $C$ once $Body$ fails, meaning that $Body$ will be rewritten back to $C$, and the next applicable rule will be tried on $C$. 
 
 \subsection*{Example}
 \begin{verbatim}
-fib(0,F) => F=1.
-fib(1,F) => F=1.
-fib(N,F),N>1 => fib(N-1,F1),fib(N-2,F2),F=F1+F2.
+fib(0,F) => F = 1.
+fib(1,F) => F = 1.
+fib(N,F), N > 1 => fib(N-1,F1), fib(N-2,F2), F = F1+F2.
 fib(N,F) => throw $error(wrong_argument,fib,N).
 \end{verbatim}
 
-A call matches the head \texttt{fib(0,F)} if the first argument is 0. The second argument can be anything. For example, for the call \texttt{fib(0,2)}, the first rule is applied, since \texttt{fib(0, 2)} matches its head. However, when the body is executed, the call \texttt{2=1} fails.  
+A call matches the head \texttt{fib(0,F)} if the first argument is 0. The second argument can be anything. For example, for the call \texttt{fib(0,2)}, the first rule is applied, since \texttt{fib(0, 2)} matches its head. However, when the body is executed, the call \texttt{2 = 1} fails.  
 
-The predicate \texttt{fib/2} can also be defined using if-then-else\index{if statement} as follows:
+The predicate \texttt{fib/2} can also be defined using if-statement\index{if statement} as follows:
 \begin{verbatim}
 fib(N,F) => 
-    if (N=0; N=1) then 
-        F=1 
-    elseif N>1 then 
-        fib(N-1,F1),fib(N-2,F2),F=F1+F2
+    if (N = 0; N = 1)
+        F = 1 
+    elseif (N > 1)
+        fib(N-1,F1), fib(N-2,F2), F = F1+F2
     else 
         throw $error(wrong_argument,fib,N)
     end.
 \end{verbatim}
-An \texttt{if} statement\index{if statement} takes the form \texttt{if $Cond$ then $Goal_1$ else $Goal_2$ end}.\footnote{Picat also accepts Prolog-style if-then-else in the form \texttt{(If->Then;Else)} and mandates the presence of the else-part.} The \texttt{then} part can contain one or more \texttt{elseif} clauses. The \texttt{else} part can be omitted. In that case the else part is assumed to be \texttt{else true}. The built-in \texttt{throw $E$}\index{\texttt{throw/1}} throws term\index{term} $E$ as an exception\index{exception}.
+An \texttt{if} statement\index{if statement} takes the form \texttt{if ($Cond$) $Goal_1$ else $Goal_2$ end}.\footnote{Picat also accepts Prolog-style if-then-else in the form \texttt{(If -> Then; Else)} and mandates the presence of the else-part.} The goal $Goal_1$ can contain one or more \texttt{elseif} clauses. The \texttt{else} part can be omitted. In that case the else part is assumed to be \texttt{else true}. The built-in \texttt{throw $E$}\index{\texttt{throw/1}} throws term\index{term} $E$ as an exception\index{exception}.
 
 \subsection*{Example}
 \begin{verbatim}
-member(X,[Y|_]) ?=> X=Y.
+member(X,[Y|_]) ?=> X = Y.
 member(X,[_|L]) => member(X,L).
 \end{verbatim}
 
 The pattern \verb+[Y|_]+ matches any list\index{list}. The backtrackable rule\index{backtrackable rule} makes a call nondeterministic, and the predicate\index{predicate} can be used to retrieve elements from a list\index{list} one at a time through backtracking.
 \begin{verbatim}
 Picat> member(X,[1,2,3])
-X=1;
-X=2;
-X=3;
+X = 1;
+X = 2;
+X =
+3;
 no
 \end{verbatim}
 After Picat returns an answer, users can type a semicolon immediately after the answer to ask for the next answer. If users only want one answer to be returned from a call, they can use \texttt{once $Call$}\index{\texttt{once/1}} to stop backtracking.
@@ -263,17 +270,17 @@ edge(c,b).
 For a predicate of Horn clauses, a matching version of the predicate\index{predicate} is selected for a call. If no matching version is available, Picat uses the default version. For example, for the call \texttt{edge(X,Y)}, if both \texttt{X} and \texttt{Y} are free\index{free variable}, then the default version is used.
 
 \section{Defining Functions}
-A function\index{function} call always succeeds with a return value if no exception\index{exception} occurs. Functions\index{function} are defined with non-backtrackable rules\index{non-backtrackable rule} in which the head is an equation $F$\verb+=+$X$, where $F$ is the function\index{function} pattern in the form $f(t_1,\ldots, t_n)$ and $X$ holds the return value. When $n=0$, the parentheses can be omitted.
+A function\index{function} call always succeeds with a return value if no exception\index{exception} occurs. Functions\index{function} are defined with non-backtrackable rules\index{non-backtrackable rule} in which the head is an equation $F$\verb+=+$X$, where $F$ is the function\index{function} pattern in the form $f(t_1,\ldots, t_n)$ and $X$ holds the return value. When $n = 0$, the parentheses can be omitted.
 
 \subsection*{Example}
 \begin{verbatim}
-fib(0) = F => F=1.
-fib(1) = F => F=1.
-fib(N) = F, N>1 => F = fib(N-1)+fib(N-2).
+fib(0) = F => F = 1.
+fib(1) = F => F = 1.
+fib(N) = F, N > 1 => F = fib(N-1)+fib(N-2).
 
-qsort([]) = L => L=[].
-qsort([H|T]) = L => L = qsort([E : E in T, E=<H]) ++ [H] ++
-                        qsort([E : E in T, E>H]).
+qsort([]) = L => L = [].
+qsort([H|T]) = L => L = qsort([E : E in T, E =< H]) ++ [H] ++
+                        qsort([E : E in T, E > H]).
 \end{verbatim}
 A function\index{function} call never fails and never succeeds more than once. For function\index{function} calls such as \texttt{fib(-1)} or \texttt{fib(X)}, Picat raises an exception\index{exception}. 
 
@@ -283,31 +290,31 @@ Picat allows inclusion of \emph{function facts}\index{function fact} in the form
 \begin{verbatim}
 fib(0) = 1.    
 fib(1) = 1.
-fib(N) = F, N>1 => F = fib(N-1)+fib(N-2).
+fib(N) = F, N > 1 => F = fib(N-1)+fib(N-2).
 
 qsort([]) = [].
 qsort([H|T]) =
-    qsort([E : E in T, E=<H]) ++ [H] ++ qsort([E : E in T, E>H]).
+    qsort([E : E in T, E =< H]) ++ [H] ++ qsort([E : E in T, E > H]).
 \end{verbatim}
 Function facts\index{function fact} are automatically indexed on all of the input arguments, and hence no index declaration\index{index declaration} is necessary. Note that while a predicate\index{predicate} call with no argument does not need parentheses, a function\index{function} call with no argument must be followed with parentheses, unless the function\index{function} is module-quantified, as in \texttt{math.pi}.
 
 The \texttt{fib} function can also be defined as follows:
 \begin{verbatim}
-fib(N) = cond((N=0;N=1), 1, fib(N-1)+fib(N-2)).
+fib(N) = cond((N = 0; N = 1), 1, fib(N-1)+fib(N-2)).
 \end{verbatim}
-The conditional expression returns 1 if the condition \texttt{(N=0;N=1)} is true, and the value of \\ \texttt{fib(N-1)+fib(N-2)} if the condition is false.
+The conditional expression returns 1 if the condition \texttt{(N = 0; N = 1)} is true, and the value of \\ \texttt{fib(N-1)+fib(N-2)} if the condition is false.
 
 \section{Assignments and Loops}
 Picat allows assignments\index{assignment} in rule bodies. An assignment\index{assignment} takes the form $LHS $$:$\verb+=+$ RHS$, where $LHS$ is either a variable or an access of a compound value\index{compound value} in the form \texttt{$X$[\ldots]}. When $LHS$ is an access in the form $X[I]$, the component of $X$ indexed $I$ is updated. This update is undone if execution backtracks over this assignment\index{assignment}.
 
 \subsection*{Example}
 \begin{verbatim}
-    test => X=0, X:=X+1, X:=X+2, write(X).
+    test => X = 0, X := X+1, X := X+2, write(X).
 \end{verbatim}
 
-In order to handle assignments\index{assignment}, Picat creates new variables at compile time.  In the above example, at compile time, Picat creates a new variable, say \texttt{X1}, to hold the value of \texttt{X} after the assignment\index{assignment} \verb-X:=X+1-. Picat replaces \texttt{X} by \texttt{X1} on the LHS of the assignment\index{assignment}.  It also replaces all of the occurrences of \texttt{X} to the right of the assignment\index{assignment} by \texttt{X1}.  When encountering \verb-X1:=X1+2-, Picat creates another new variable, say \texttt{X2}, to hold the value of \texttt{X1} after the assignment\index{assignment}, and replaces the remaining occurrences of \texttt{X1} by \texttt{X2}. When \texttt{write(X2)}\index{\texttt{write/1}} is executed, the value held in \texttt{X2}, which is 3, is printed.  This means that the compiler rewrites the above example as follows:
+In order to handle assignments\index{assignment}, Picat creates new variables at compile time.  In the above example, at compile time, Picat creates a new variable, say \texttt{X1}, to hold the value of \texttt{X} after the assignment\index{assignment} \verb-X := X+1-. Picat replaces \texttt{X} by \texttt{X1} on the LHS of the assignment\index{assignment}.  It also replaces all of the occurrences of \texttt{X} to the right of the assignment\index{assignment} by \texttt{X1}.  When encountering \verb-X1 := X1+2-, Picat creates another new variable, say \texttt{X2}, to hold the value of \texttt{X1} after the assignment\index{assignment}, and replaces the remaining occurrences of \texttt{X1} by \texttt{X2}. When \texttt{write(X2)}\index{\texttt{write/1}} is executed, the value held in \texttt{X2}, which is 3, is printed.  This means that the compiler rewrites the above example as follows:
 \begin{verbatim}
-    test => X=0, X1=X+1, X2=X1+2, write(X2).
+    test => X = 0, X1 = X+1, X2 = X1+2, write(X2).
 \end{verbatim}
 
 Picat supports \texttt{foreach}\index{foreach loop} and \texttt{while}\index{while loop} statements for programming repetitions. A \texttt{foreach}\index{foreach loop} statement takes the form
@@ -348,25 +355,25 @@ the variables \texttt{I} and \texttt{E} are local\index{local variable}, and eac
 \subsection*{Example}
 \begin{verbatim}
 write_map(Map) =>
-    foreach (Key=Value in Map)
-        writef("%w=%w\n",Key,Value)
+    foreach ((Key = Value) in Map)
+        writef("%w = %w\n",Key,Value)
     end.
 
 sum_list(L) = Sum =>    % returns sum(L)
-    S=0,
+    S = 0,
     foreach (X in L)
-        S:=S+X
+        S := S+X
     end,
-    Sum=S.
+    Sum = S.
 
 read_list = List =>
-    L=[],
-    E=read_int(),
+    L = [],
+    E = read_int(),
     while (E != 0) 
         L := [E|L],
         E := read_int()
     end,
-    List=L.
+    List = L.
 \end{verbatim}
 The function \texttt{read\_list} reads a sequence of integers into a list\index{list}, terminating when 0 is read. The loop corresponds to the following sequence of recurrences:
 \begin{tabbing}
@@ -388,7 +395,7 @@ read_list = List =>
         L := T,
         E := read_int()
     end,
-    L=[].
+    L = [].
 \end{verbatim}
 This loop corresponds to the following sequence of recurrences:
 \begin{tabbing}
@@ -421,7 +428,7 @@ List = [(A,X) : A in [a,b], X in 1..2]
 is compiled into the following loop:
 \begin{verbatim}
 List = L,
-foreach(A in [a,b], X in 1..2)
+foreach (A in [a,b], X in 1..2)
     L = [(A,X)|T],
     L := T
 end,
@@ -540,24 +547,24 @@ import cp.
 sudoku =>
     instance(N,A),
     A :: 1..N,
-    foreach(Row in 1..N)
+    foreach (Row in 1..N)
         all_different(A[Row])
     end,
-    foreach(Col in 1..N)
+    foreach (Col in 1..N)
         all_different([A[Row,Col] : Row in 1..N])
     end,
-    M=floor(sqrt(N)),
-    foreach(Row in 1..M, Col in 1..M) 
+    M = floor(sqrt(N)),
+    foreach (Row in 1..M, Col in 1..M) 
         Square = [A[Row1,Col1] : 
                     Row1 in (Row-1)*M+1..Row*M, 
                     Col1 in (Col-1)*M+1..Col*M],
         all_different(Square)
     end,
     solve(A),
-    foreach(I in 1..N) writeln(A[I]) end.
+    foreach (I in 1..N) writeln(A[I]) end.
 
 instance(N,A) =>
-    N=9,
+    N = 9,
     A = {{2,_,_,6,7,_,_,_,_},
          {_,_,6,_,_,_,2,_,1},
          {4,_,_,_,_,_,8,_,_},
@@ -606,7 +613,7 @@ Picat> Z = apply('+',1,2)
 Z = 3
 \end{verbatim}
 \ignore{
-A lambda term\index{term} in the form \texttt{lambda($VList$,$Exp$)}, where $VList$ is a list\index{list} of input variables, and $Exp$ is an expression, denotes an anonymous function\index{function}. The last command in the example is the same as \texttt{Z=apply(add,1,2)}\index{\texttt{apply}}, where \texttt{add} is a function defined as follows:
+A lambda term\index{term} in the form \texttt{lambda($VList$,$Exp$)}, where $VList$ is a list\index{list} of input variables, and $Exp$ is an expression, denotes an anonymous function\index{function}. The last command in the example is the same as \texttt{Z = apply(add,1,2)}\index{\texttt{apply}}, where \texttt{add} is a function defined as follows:
 \begin{verbatim}
 add(X,Y) = Z => Z = X+Y.
 \end{verbatim}
@@ -645,7 +652,7 @@ An event channel is an attributed variable\index{attributed variable} to which a
 echo(X,Flag), var(Flag), {event(X,T)} => writeln(T).
 echo(_X,_Flag) => writeln(done).
 
-foo(Flag) => Flag=1.
+foo(Flag) => Flag = 1.
 \end{verbatim}
 When a call \texttt{echo(X,Flag)} is executed, where \texttt{Flag} is a variable, it is attached to the \texttt{dom}-port\index{\texttt{dom}-port} of \texttt{X} as an actor\index{action rule}.  The actor\index{action rule} is then suspended, waiting for events posted to the \texttt{dom}-port\index{\texttt{dom}-port}. For this actor\index{action rule} definition, the command
 \begin{small}
@@ -653,7 +660,7 @@ When a call \texttt{echo(X,Flag)} is executed, where \texttt{Flag} is a variable
 echo(X,Flag), post_event(X,hello), post_event(X,picat).
 \end{verbatim}
 \end{small}
-prints out \texttt{hello} followed by \texttt{picat}. If the call \texttt{foo(Flag)} is inserted before the second call to \texttt{post\_event}, then \texttt{var(Flag)}\index{\texttt{var/1}} fails when the actor\index{action rule} is activated the second time, causing the second rule to be applied to the actor\index{action rule}. Then, the output will be \texttt{hello} followed by \texttt{done}. Note that events are not handled until a non-inline call is executed. Replacing \texttt{foo(Flag)} by \texttt{Flag=1} will result in a different behavior because \texttt{Flag=1} is an inline call.
+prints out \texttt{hello} followed by \texttt{picat}. If the call \texttt{foo(Flag)} is inserted before the second call to \texttt{post\_event}, then \texttt{var(Flag)}\index{\texttt{var/1}} fails when the actor\index{action rule} is activated the second time, causing the second rule to be applied to the actor\index{action rule}. Then, the output will be \texttt{hello} followed by \texttt{done}. Note that events are not handled until a non-inline call is executed. Replacing \texttt{foo(Flag)} by \texttt{Flag = 1} will result in a different behavior because \texttt{Flag = 1} is an inline call.
 
 \ignore{
 \section{Threads}
@@ -675,14 +682,14 @@ install_echo_actor =>
 
 echo(X,Flag),var(Flag),{event(X,T)} => 
     writeln(T), 
-    if (T == done) then Flag=1 end.
+    if (T == done) Flag = 1 end.
 echo(_,_) => true.
 
 loop(Flag), var(Flag) => loop(Flag).
 loop(_) => true.
 
 send(N,EchoThread) =>
-    foreach(I in 1..N)
+    foreach (I in 1..N)
         post_event(EchoThread,hello)
     end,
     post_event(EchoThread,done).
@@ -711,17 +718,17 @@ go ?=>
     get_table_map(t1).put(one,1),
     fail.
 go =>
-    if (get_heap_map(h1).has_key(one)) then 
+    if (get_heap_map(h1).has_key(one))
        writef("heap map h1 has key%n") 
     else 
        writef("heap map h1 has no key%n")
     end,
-    if (get_global_map(g1).has_key(one)) then 
+    if (get_global_map(g1).has_key(one))
        writef("global map g1 has key%n") 
     else 
        writef("global map g1 has no key%n")
     end,
-    if (get_table_map(t1).has_key(one)) then 
+    if (get_table_map(t1).has_key(one))
        writef("table map t1 has key%n") 
     else 
        writef("table map t1 has no key%n")

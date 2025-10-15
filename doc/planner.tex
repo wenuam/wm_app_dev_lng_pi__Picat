@@ -15,7 +15,7 @@ The \texttt{planner} module provides several predicates for solving planning pro
 \item \texttt{final($S$)}\index{\texttt{final/1}}: This predicate succeeds if $S$ is a final state.
 \item \texttt{final($S$,$Plan$,$Cost$)}\index{\texttt{final/3}}: A final state can be reached from $S$ by the action sequence in $Plan$ with $Cost$. If this predicate is not given, then the system assumes the following definition:
 \begin{verbatim}
-    final(S,Plan,Cost) => Plan=[], Cost=0, final(S).
+    final(S,Plan,Cost) => Plan = [], Cost = 0, final(S).
 \end{verbatim}
 
 \item \texttt{action($S$,$NextS$,$Action$,$ActionCost$)}\index{\texttt{action/4}}: This predicate encodes the state transition diagram of the planning problem. The state $S$ can be transformed into $NextS$ by performing $Action$. The cost of $Action$ is $ActionCost$. If the plan's length is the only interest, then $ActionCost$ should be 1.
@@ -124,7 +124,7 @@ The program shown in Figure \ref{fig:farmer2} solves the Farmer's problem by usi
     import planner.
 
     go =>
-        S0=[s,s,s,s],
+        S0 = [s,s,s,s],
         best_plan(S0,Plan),
         writeln(Plan).
 

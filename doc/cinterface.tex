@@ -43,8 +43,8 @@ The following functions are provided for testing Picat terms. They return \textt
 \item \texttt{int picat\_is\_structure(TERM t)}: Term \texttt{t} is a structure (but not a list).   
 \item \texttt{int picat\_is\_array(TERM t)}: Term \texttt{t} is an array.   
 \item \texttt{int picat\_is\_compound(TERM t)}: True if either \texttt{picat\_is\_list(t)} \\ or \texttt{picat\_is\_structure(t)} is true.   
-\item \texttt{int picat\_is\_identical(TERM t1, TERM t2)}: \texttt{t1} and \texttt{t2} are identical. This function is equivalent to the Picat call \texttt{t1==t2}.
-\item \texttt{int picat\_is\_unifiable(TERM t1, TERM t2)}: \texttt{t1} and \texttt{t2} are unifiable. This is equivalent to the Picat call \texttt{not(not(t1=t2))}.
+\item \texttt{int picat\_is\_identical(TERM t1, TERM t2)}: \texttt{t1} and \texttt{t2} are identical. This function is equivalent to the Picat call \texttt{t1 == t2}.
+\item \texttt{int picat\_is\_unifiable(TERM t1, TERM t2)}: \texttt{t1} and \texttt{t2} are unifiable. This is equivalent to the Picat call \texttt{not(not(t1 = t2))}.
 \end{itemize}
 
 \section{Converting Picat Terms into C}

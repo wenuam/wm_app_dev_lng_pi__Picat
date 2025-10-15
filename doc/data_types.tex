@@ -122,7 +122,6 @@ Table \ref{tab:arithdef} gives the meaning of each of the numeric operators in P
  \texttt{$X$ + $Y$} & addition \\ \hline 
  \texttt{$X$ - $Y$} &   subtraction \\ \hline 
  \texttt{$X$ >> $Y$}  &  right shift \\ \hline 
-% \texttt{$X$ >>> $Y$}  &  unsigned  right shift \\ \hline 
  \texttt{$X$ << $Y$}  &  left shift \\ \hline 
  {\tt $X$ \verb+/\+ $Y$}  &   bitwise and \\ \hline 
  {\tt $X$ \verb+^+ $Y$} &   bitwise xor \\ \hline
@@ -137,7 +136,8 @@ Table \ref{tab:arithdef} gives the meaning of each of the numeric operators in P
 In addition to the numeric operators, the \texttt{basic} module also provides the following built-ins for numbers\index{number}:
 
 \begin{itemize}
-\item \texttt{between($From$,$To$,$X$)}\index{\texttt{between/3}} (nondet): If $X$ is bound to an integer, then this predicate determines whether $X$ is between $From$ and $To$.  Otherwise, if $X$ is unbound, then this predicate nondeterministically selects $X$ from the integers that are between $From$ and $To$. It is the same as \texttt{member($X$,$From$..$To$)}\index{\texttt{member/2}}.
+\item \texttt{between($From$,$To$,$X$)}\index{\texttt{between/3}} (nondet): If $X$ is bound to a number, then this predicate determines whether $X$ is between $From$ and $To$.  Otherwise, if $X$ is unbound, then this predicate nondeterministically selects $X$ from the numbers that are between $From$ and $To$ with step 1. It is the same as \texttt{member($X$,[$E$ : $E$ in $From$..$To$])}, but it does not create the list.
+\item \texttt{between($From$,$Step$,$To$,$X$)}\index{\texttt{between/4}} (nondet): This predicate nondeterministically selects $X$ from the numbers that are between $From$ and $To$ with $Step$, where $From$, $To$, and $Step$ must be numbers. It is the same as \texttt{member($X$,[$E$ : $E$ in $From$..$Step$..$To$])}, but it does not create the list.
 \item \texttt{bigint($Term$)}\index{\texttt{bigint/1}}: This predicate is true if $Term$ is a big integer.
 \item \texttt{float($Term$)}\index{\texttt{float/1}}: This predicate is true if $Term$ is a real number\index{number}.
 \item \texttt{int($Term$)}\index{\texttt{int/1}}: This predicate is true if $Term$ is an integer.
@@ -287,11 +287,11 @@ Picat disallows creation of the following types of structures\index{structure}:
 aa \= aaa \= aaa \= aaa \= aaa \= aaa \= aaa \= aaa \kill
 \> Dot notations:  \>  \> \> \> \> \> \texttt{math.pi},\ \texttt{my\_module.f(a)} \\
 \> Index notations:  \>  \> \> \> \> \> \texttt{X[1]+2}\, \texttt{X[Y[I]]} \\
-\> Assignments:  \>  \> \> \> \> \> \texttt{X:=Y+Z},\ \texttt{X:=X+1} \\
+\> Assignments:  \>  \> \> \> \> \> \texttt{X := Y+Z},\ \texttt{X := X+1} \\
 \> Ranges:  \>  \> \> \> \> \> \texttt{1..10},\ \texttt{1..2..10} \\
 \> List comprehensions:  \>  \> \> \> \> \> \texttt{[X : X in 1..5]} \\
 \> Array comprehensions:  \>  \> \> \> \> \> \texttt{\{X : X in 1..5\}} \\
-\> If-then:  \>  \> \> \> \> \> \texttt{if X>Y then Z=X else Z=Y end} \\
+\> If:  \>  \> \> \> \> \> \texttt{if (X > Y) Z = X else Z = Y end} \\
 \> Loops:  \>  \> \> \> \> \> \texttt{foreach (X in L) writeln(X) end } 
 \end{tabbing}
 The compiler will report a syntax error when it encounters any of these expressions within a term constructor.

@@ -29,7 +29,7 @@ import os.
 traverse(Dir), directory(Dir) =>
    List = listdir(Dir),
    printf("Inside %s%n",Dir),
-   foreach(File in List)
+   foreach (File in List)
        printf("    %s%n",File)
    end,
    foreach (File in List, File != ".", File != "..")
@@ -149,11 +149,11 @@ The following example shows how to use a few of the predicates.
 import os.
 
 test_file(Path) =>
-    if (not exists(Path)) then
+    if (not exists(Path))
         printf("%s does not exist %n",Path)
-    elseif (directory(Path)) then
+    elseif (directory(Path))
         println("Directory")
-    elseif (file(Path)) then
+    elseif (file(Path))
         println("File")
     else
         println("Unknown")

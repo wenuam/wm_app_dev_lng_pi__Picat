@@ -158,11 +158,14 @@ not_constr ->
    enclosed_goal
 
 enclosed_goal ->
-   "if" goal "then" goal {"elseif" goal "then" goal} "else" goal "end"
+   "if" if_cond goal {"elseif" if_cond goal} "else" goal "end"
    "foreach" "(" iterator {"," (iterator | condition)} ")" goal "end"
    "while" "(" goal ")" ["do"] goal "end"
    "do" goal "while" "(" goal ")"
    expression {bin_rel_op expression}
+
+if_cond -> "(" goal ")" ["then"]       % "then" is optional
+if_cond -> goal "then"                 % "then" is mandated if goal is not enclosed in parentheses
 
 bin_rel_op ->
     "=" 
@@ -285,7 +288,7 @@ term_constructor ->
     "$" goal ["$"]
 
 /* a term has the same form as a goal except that it cannot contain loops 
-   or if-then-else. Note that subscript notations, range expressions, dot
+   or if statements. Note that subscript notations, range expressions, dot
    notations, and list comprehensions are still treated as functions in 
    term constructors */
 

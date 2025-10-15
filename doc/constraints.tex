@@ -151,10 +151,10 @@ When a constraint occurs in an arithmetic expression, it is evaluated to 1 if it
     maxflow(M,Source,Sink) =>
         N = M.length,
         X = new_array(N,N),
-        foreach(I in 1..N, J in 1..N)
+        foreach (I in 1..N, J in 1..N)
             X[I,J] :: 0..M[I,J]
         end,
-        foreach(I in 1..N, I!=Source, I!=Sink)
+        foreach (I in 1..N, I != Source, I != Sink)
             sum([X[J,I] : J in 1..N]) #= sum([X[I,J] : J in 1..N]) 
         end,
         Total #= sum([X[Source,I] : I in 1..N]),
@@ -224,7 +224,7 @@ Picat provides the following global constraints.
         (var(Ys) -> Ys = new_list(N); true),
         Xs :: 1..N,
         Ys :: 1..N,
-        foreach(I in 1..N, J in 1..N)
+        foreach (I in 1..N, J in 1..N)
             X[I] #= J #<=> Y[J] #= I
         end.
 \end{verbatim}
@@ -233,11 +233,11 @@ Picat provides the following global constraints.
 
 \item \texttt{at\_most($N$,$L$,$V$)}:\index{\texttt{atmost/3}} This constraint succeeds if there are at most $N$ elements in $L$ that are equal to $V$, where $N$ and $V$ must be integer-domain variables, and $L$ must be a list of integer-domain variables.
 
-\item \texttt{circuit($FDVars$)}\index{\texttt{circuit/1}}: Let $FDVars$ be a list of variables \texttt{[$X_1,X_2,\ldots,X_N$]}, where each \texttt{$X_i$} has the domain $1..N$. A valuation $X_1=v_1$, $X_2=v_2$, $\ldots$, $X_n=v_n$ satisfies the constraint if \texttt{1->$v_1$, 2->$v_2$, ..., n->$v_n$} forms a Hamiltonian cycle\index{Hamiltonian cycle}. This constraint ensures that each variable has a different value, and that the graph that is formed by the assignment does not contain any sub-cycles. For example, for the constraint\index{\texttt{circuit/1}} 
+\item \texttt{circuit($FDVars$)}\index{\texttt{circuit/1}}: Let $FDVars$ be a list of variables \texttt{[$X_1,X_2,\ldots,X_N$]}, where each \texttt{$X_i$} has the domain $1..N$. A valuation $X_1 = v_1$, $X_2 = v_2$, $\ldots$, $X_n = v_n$ satisfies the constraint if \texttt{1 -> $v_1$, 2 -> $v_2$, ..., n -> $v_n$} forms a Hamiltonian cycle\index{Hamiltonian cycle}. This constraint ensures that each variable has a different value, and that the graph that is formed by the assignment does not contain any sub-cycles. For example, for the constraint\index{\texttt{circuit/1}} 
 \begin{verbatim}
     circuit([X1,X2,X3,X4])
 \end{verbatim}
-\texttt{[3,4,2,1]} is a solution, but \texttt{[2,1,4,3]} is not, because the graph \texttt{1->2, 2->1, 3->4, 4->3} contains two sub-cycles.
+\texttt{[3,4,2,1]} is a solution, but \texttt{[2,1,4,3]} is not, because the graph \texttt{1 -> 2, 2 -> 1, 3 -> 4, 4 -> 3} contains two sub-cycles.
 \item \texttt{count($V$,$FDVars$,$Rel$,$N$)}\index{\texttt{count/4}}:  In this constraint, $V$ and $N$ are integer-domain variables, $FDVars$ is a list of integer-domain variables, and $Rel$ is an arithmetic constraint operator (\verb+#=+,  \verb+#!=+,  \verb+#>+,  \verb+#>=+,  \verb+#<+,  \verb+#=<+, or \verb+#<=+). Let $Count$ be the number of elements in $FDVars$ that are equal to $V$. The constraint is true iff $Count$ $Rel$ $N$ is true. This constraint can be defined as follows:
 \begin{verbatim}
     count(V,L,Rel,N) =>
@@ -265,7 +265,7 @@ Picat provides the following global constraints.
 \item \texttt{global\_cardinality($List$,$Pairs$)}\index{\texttt{global\_cardinality/2}}: Let $List$ be a list of integer-domain variables \texttt{[$X_1$, $\ldots$, $X_d$]}, and $Pairs$ be a list of pairs \texttt{[$K_1$-$V_1$, $\ldots$, $K_n$-$V_n$]}, where each key \texttt{$K_i$} is a unique integer, and each \texttt{$V_i$} is an integer-domain variable. The constraint is true if every element of $List$ is equal to some key, and, for each pair \texttt{$K_i$-$V_i$}, exactly \texttt{$V_i$} elements of $List$ are equal to \texttt{$K_i$}. This constraint can be defined as follows:
 \begin{verbatim}
     global_cardinality(List,Pairs) =>
-        foreach($Key-V in Pairs) 
+        foreach ($Key-V in Pairs) 
             sum([B : E in List, B#<=>(E#=Key)]) #= V
         end.
 \end{verbatim}

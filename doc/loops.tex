@@ -36,7 +36,7 @@ This leads to the question: what does the compiler do if the code branches?  Con
 \begin{verbatim}
 if_ex(Z) =>
     X = 1, Y = 2,
-    if Z > 0 then
+    if (Z > 0)
        X := X * Z    
     else
        Y := Y + Z
@@ -87,12 +87,12 @@ loop_ex1 =>
     end.
 
 loop_ex2(Map) =>
-    foreach(Key=Value in Map)
-        writef("%w=%w\n", Key, Value)
+    foreach ((Key = Value) in Map)
+        writef("%w = %w\n", Key, Value)
     end.
 \end{verbatim}
 
-The \texttt{loop\_ex1} example iterates through a list.  The \texttt{loop\_ex2} example iterates through a map, where \texttt{Key=Value} is the iterating pattern\index{iterator}.
+The \texttt{loop\_ex1} example iterates through a list.  The \texttt{loop\_ex2} example iterates through a map, where \texttt{Key = Value} is the iterating pattern\index{iterator}.
 
 The \texttt{loop\_ex1} example can also be written, using a \emph{failure-driven loop}\index{failure-driven loop}, as follows.
 
@@ -113,7 +113,7 @@ Recall that the range $Start .. Step .. End$ stands for a list of numbers.  Rang
 \subsection*{Example}
 \begin{verbatim}
 loop_ex3 =>
-    foreach(E in 1 .. 2 .. 9)
+    foreach (E in 1 .. 2 .. 9)
         println(E)
     end.
 \end{verbatim}
@@ -123,7 +123,7 @@ Also recall that the function \texttt{zip($List_1$,$List_2$,$\ldots$,$List_n$)}\
 \subsection*{Example:}
 \begin{verbatim}
 loop_ex_parallel =>
-    foreach(Pair in zip(1..2, [a,b]))
+    foreach (Pair in zip(1..2, [a,b]))
         println(Pair)
     end.
 \end{verbatim}
@@ -135,7 +135,7 @@ Each of the previous examples uses a single iterator\index{iterator}.  Foreach l
 \begin{verbatim}
 loop_ex4 =>
     L = [2, 3, 5, 10],
-    foreach(I in L, J in 1 .. 10, J mod I != 0)
+    foreach (I in L, J in 1 .. 10, J mod I != 0)
         printf("%d is not a multiple of %d%n", J, I)
     end.
 \end{verbatim}
@@ -146,9 +146,9 @@ The foreach loop\index{foreach loop} in \texttt{loop\_ex4} is the same as the ne
 \begin{verbatim}
 loop_ex5 =>
     L = [2, 3, 5, 10],
-    foreach(I in L)
-        foreach(J in 1..10)
-            if J mod I != 0 then
+    foreach (I in L)
+        foreach (J in 1..10)
+            if (J mod I != 0)
                printf("%d is not a multiple of %d%n", J, I)
             end
         end
@@ -210,7 +210,7 @@ loop_ex10 =>
 
 The while loop\index{while loop} in \texttt{loop\_ex7} prints all of the odd numbers between $1$ and $9$.  It is similar to the foreach loop\index{foreach loop}
 \begin{verbatim}
-foreach(I in 1 .. 2 .. 9)
+foreach (I in 1 .. 2 .. 9)
     println(I)
 end.
 \end{verbatim}
@@ -335,7 +335,7 @@ min_max([H|T], Min, Max) =>
 
 p([], MinIn, MinOut, MaxIn, MaxOut) =>
     MinOut = MinIn,
-    MaxOut= MaxIn.
+    MaxOut = MaxIn.
 p([E|T], MinIn, MinOut, MaxIn, MaxOut) =>
     Min1 = min(MinIn, E),
     Max1 = max(MaxIn, E),

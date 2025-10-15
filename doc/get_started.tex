@@ -9,10 +9,10 @@
 \end{center}
 \rule{450pt}{1pt}
 
-\vspace*{5mm}
-\begin{center}
-{\Large Bo Yuan Zhou}
-\end{center}
+%\vspace*{5mm}
+%\begin{center}
+%{\Large Bo Yuan Zhou}
+%\end{center}
 
 \vspace*{5mm}
 
@@ -21,7 +21,7 @@
   
 \section*{\Large{Install Picat}}
 \begin{enumerate}
-\item Download the zip or gz archive file for from: \url{http://picat-lang.org}. 
+\item Download the zip or gz archive file for from: \url{https://picat-lang.org}. 
 \item Extract the files of the archive to a directory, say \verb+c:\+ on Windows. The file named \verb+picat.exe+ is the executable of the Picat system.
 \item For convenience, add the directory that contains \verb+picat.exe+ to the environment variable \texttt{PATH} so that you can start Picat from any working directory. 
   \ignore{
@@ -40,10 +40,10 @@ Once you're finished, the directory that you are in should look like this:
     
 \section*{\Large{Start and Quit Picat}}
 \begin{enumerate}
-\item Open an OS terminal. This can be done by selecting \verb+Start->Run+ and typing \verb+cmd+, or selecting 
+\item Open an OS terminal. This can be done by selecting \verb+Start -> Run+ and typing \verb+cmd+, or selecting 
 \begin{tabbing}
 aa \= aaa \= aaa \= aaa \= aaa \= aaa \= aaa \kill
-\> \> \verb+Start->Programs->Accessories->Command Prompt+.  
+\> \> \verb+Start -> Programs -> Accessories -> Command Prompt+.  
 \end{tabbing}
 
 \item Change the working directory. In the following, the working directory is assumed to be \verb+c:\Picat\work\+. The command DOS \texttt{mkdir} can be used to create directories.
@@ -68,7 +68,7 @@ main =>
     I = 1,
     F = fib(I),
     while (F <= 4000000)
-        if (F mod 2 == 0) then
+        if (F mod 2 == 0) 
             S := S+F
         end,
         I := I+1,
@@ -77,7 +77,7 @@ main =>
     printf("Sum of the even-valued terms is %w%n",S).
        
 main([A1]) => 
-    printf("fib(%s)=%w%n",A1,A1.to_integer().fib()).
+    printf("fib(%s) = %w%n",A1,A1.to_integer().fib()).
 
 table
 fib(1) = 1.
@@ -92,7 +92,7 @@ fib(N) = fib(N-1)+fib(N-2).
 \item Start Picat.
 \item Compile and load the file using \texttt{cl(fib)}.
 \item Type \texttt{main} to run the program.
-\item You can also call the function {\tt fib} by typing a query such as \verb+X=fib(100)+.
+\item You can also call the function {\tt fib} by typing a query such as \verb+X = fib(100)+.
 \end{enumerate}
 
 \includegraphics[width=6in]{get_started_2.jpg}

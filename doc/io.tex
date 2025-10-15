@@ -319,7 +319,7 @@ import io, process.
 unnamed =>
     FDs = mkpipe(), % create the pipe
     ID = process.fork(),
-    if ID == 0 then % child process
+    if (ID == 0)    % child process
        close(FDs.writeFD),
        reader(FDs.readFD)
     else            % parent process

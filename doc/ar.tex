@@ -116,17 +116,17 @@ different_terms([X|Xs],[Y|Ys],B) =>
     B #= (B1 #\/ B2).
 different_terms(X,Y,B), struct(X), struct(Y) =>
     writeln(X), writeln(Y),											  
-    if (X.name !== Y.name; X.length !== Y.length) then
-       B=1
+    if (X.name !== Y.name; X.length !== Y.length)
+       B = 1
     else
        Bs = new_list(X.length),
-       foreach(I in 1 .. X.length)
+       foreach (I in 1 .. X.length)
            different_terms(X[I],Y[I],Bs[I])
        end,
        max(Bs) #= B
     end.
-different_terms(X,Y,B), X == Y => B=0.
-different_terms(X,Y,B) => B=1.
+different_terms(X,Y,B), X == Y => B = 0.
+different_terms(X,Y,B) => B = 1.
 \end{verbatim}
 The call \texttt{different\_terms(X,Y,B)} is delayed if either \texttt{X} or \texttt{Y} is a variable. The delayed call watches \texttt{ins(X)} and  \texttt{ins(Y)} events. Once both \texttt{X} and \texttt{Y} become non-variable, the action rule\index{action rule} becomes inapplicable, and one of the subsequent rules will be applied. If \texttt{X} and \texttt{Y} are lists, then they are different if the heads are different (\verb+B1+), or if the tails are different (\verb+B2+).  This relationship is represented as the Boolean constraint \verb+ B #= (B1 #\/ B2)+. If \texttt{X} and \texttt{Y} are both structures, then they are different if the functor is different, or if any pair of arguments of the structures is different.
 
