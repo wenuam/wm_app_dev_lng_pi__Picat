@@ -650,16 +650,21 @@ smt_dump_entails_eq_tuple_constr(OStream,_VarsTuple,_Tuple,I,N,BijTerms,B), I > 
 smt_dump_entails_eq_tuple_constr(OStream,VarsTuple,Tuple,I,N,BijTerms,B) =>
     V = VarsTuple[I],
     A = Tuple[I],
-    smt_reif_v_eq_c_lookup(Bij,V,A,Flag),
-    (Flag == 1 ->       % Flag = 1 means that B <=> (V = A) has been posted already
-        true
+    (A == '*' ->
+        BijTerms1 = [(1,1)|BijTerms]
     ;
-        smt_new_dvar(OStream,Bij,0,1),
-        Const is -A,
-        smt_dump_reif_imp_constr(OStream,reif,Bij,eq,Const,[(1,V)])    
+        smt_reif_v_eq_c_lookup(Bij,V,A,Flag),
+        (Flag == 1 ->       % Flag = 1 means that B <=> (V = A) has been posted already
+            true
+        ;
+            smt_new_dvar(OStream,Bij,0,1),
+            Const is -A,
+            smt_dump_reif_imp_constr(OStream,reif,Bij,eq,Const,[(1,V)])    
+        ),
+        BijTerms1 = [(1,Bij)|BijTerms]
     ),
     I1 is I+1,
-    smt_dump_entails_eq_tuple_constr(OStream,VarsTuple,Tuple,I1,N,[(1,Bij)|BijTerms],B).
+    smt_dump_entails_eq_tuple_constr(OStream,VarsTuple,Tuple,I1,N,BijTerms1,B).
 
 
 %% VarsTuple notin Tuples
@@ -682,16 +687,21 @@ smt_dump_notin_tuple_constr(OStream,_VarsTuple,_Tuple,I,N,BijTerms), I > N =>
 smt_dump_notin_tuple_constr(OStream,VarsTuple,Tuple,I,N,BijTerms) =>
     V = VarsTuple[I],
     A = Tuple[I],
-    smt_reif_v_eq_c_lookup(Bij,V,A,Flag),
-    (Flag == 1 ->       % Flag = 1 means that B <=> (V = A) has been posted already
-        true
+    (A == '*' ->
+        BijTerms1 = [(-1,1)|BijTerms]
     ;
-        smt_new_dvar(OStream,Bij,0,1),
-        Const is -A,
-        smt_dump_reif_imp_constr(OStream,reif,Bij,eq,Const,[(1,V)])
+        smt_reif_v_eq_c_lookup(Bij,V,A,Flag),
+        (Flag == 1 ->       % Flag = 1 means that B <=> (V = A) has been posted already
+            true
+        ;
+            smt_new_dvar(OStream,Bij,0,1),
+            Const is -A,
+            smt_dump_reif_imp_constr(OStream,reif,Bij,eq,Const,[(1,V)])
+        ),
+        BijTerms1 = [(-1,Bij)|BijTerms]
     ),
     I1 is I+1,
-    smt_dump_notin_tuple_constr(OStream,VarsTuple,Tuple,I1,N,[(-1,Bij)|BijTerms]).
+    smt_dump_notin_tuple_constr(OStream,VarsTuple,Tuple,I1,N,BijTerms1).
 
 smt_dump_rel(OStream,imp) =>
     print(OStream,"=>").  

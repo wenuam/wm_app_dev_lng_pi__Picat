@@ -23,6 +23,12 @@ check_mip_solver(gurobi) =>
     ;
         handle_exception($existence_error(gurobi_cl),solve)
     ).
+check_mip_solver(cbc) =>
+    (check_command("cbc") ->
+        true
+    ;
+        handle_exception($existence_error(cbc),solve)
+    ).
 check_mip_solver(glpk) =>
     (check_command("glpsol") ->
         true
@@ -32,6 +38,8 @@ check_mip_solver(glpk) =>
 check_mip_solver(Solver) =>
     (check_command("gurobi_cl") ->
         Solver = gurobi
+    ; check_command("cbc") ->
+        Solver = cbc
     ; check_command("glpsol") ->
         Solver = glpk
     ;
@@ -63,6 +71,10 @@ proc_mip_solve_options([],_Cmd,Obj) => (var(Obj) -> Obj = 0; true).
 proc_mip_solve_options([gurobi|Options],Cmd,Obj) =>
     Cmd = $solve(Solver,_TmpFile,_Fmt),
     (var(Solver) -> Solver = gurobi; handle_exception($multiple_mip_solvers(gurobi,Solver),solve)),
+    proc_mip_solve_options(Options,Cmd,Obj).
+proc_mip_solve_options([cbc|Options],Cmd,Obj) =>
+    Cmd = $solve(Solver,_TmpFile,_Fmt),
+    (var(Solver) -> Solver = cbc; handle_exception($multiple_mip_solvers(cbc,Solver),solve)),
     proc_mip_solve_options(Options,Cmd,Obj).
 proc_mip_solve_options([opb|Options],Cmd,Obj) =>
     Cmd = $solve(Solver,_TmpFile,Fmt),
@@ -102,7 +114,7 @@ mip_solve_aux(solve(Solver,TmpFile,Fmt),ObjExp,Sense,Vars), Solver == dump =>
     (nonvar(Fmt) -> true; Fmt = lp),
     not not mip_dump(TmpStream,Fmt,Sense,ObjTerms,AllVars,Constrs),
     close(TmpStream).
-mip_solve_aux(solve(Solver,TmpFile,_Fmt),ObjExp,Sense,Vars) =>   % Solver = gurobi, or glpk
+mip_solve_aux(solve(Solver,TmpFile,_Fmt),ObjExp,Sense,Vars) =>   % Solver = gurobi, cbc, or glpk
     mip_check_file(TmpFile,"__tmp.lp",TmpFileStr),
     (append(MainName,".lp",TmpFileStr) -> true; handle_exception($extension_name_expected(".lp"),solve)),
     SolFileStr = MainName ++ ".sol",
@@ -119,7 +131,6 @@ mip_solve_repeat(Solver,TmpFileStr,SolFileStr,ObjExp,Sense,Vars,VarsArr,_Table) 
     bp.assert($mip_last_solution(VarsArr)).
 mip_solve_repeat(Solver,TmpFileStr,SolFileStr,ObjExp,Sense,Vars,VarsArr,Table),
     bp.retract($mip_last_solution(Tuple)),
-%    not member(Tuple, Table)                       % somehow this test is needed for Gurobi
     true
 =>
     bp.'$table_notin'(VarsArr,[Tuple]),            % generated constraints are added into the global store
@@ -140,6 +151,8 @@ mip_call_mip(Solver,TmpFileStr,SolFileStr,ObjExp,Sense,Vars) =>
 %%
 mip_create_command(gurobi,TmpFileStr,SolFileStr,Command) =>    
     Command = "gurobi_cl ResultFile=" ++ SolFileStr ++ [' '|TmpFileStr].
+mip_create_command(cbc,TmpFileStr,SolFileStr,Command) =>
+    Command = "cbc " ++ TmpFileStr ++ " solve solu " ++ SolFileStr.
 mip_create_command(glpk,TmpFileStr,SolFileStr,Command) =>
     Command = "glpsol --lp -o " ++ SolFileStr ++ [' '|TmpFileStr].
 
@@ -148,6 +161,8 @@ mip_retrive_res(Solver,SolFileStr,Vars),
 =>
     (Solver == gurobi ->
         retrieve_gurobi_res(SolFileStr,Vars)
+    ; Solver == cbc ->
+        retrieve_cbc_res(SolFileStr,Vars)
     ;
         retrieve_glpk_res(SolFileStr,Vars)
     ).
@@ -394,6 +409,54 @@ gurobi_read_result(IStream,_,HTab) =>
     gurobi_read_result(IStream,Line,HTab).
 
 %%%
+retrieve_cbc_res(SolFile,Vars) =>
+    IStream = open(SolFile),
+    _ = read_line(IStream),   % skip head
+    Line = read_line(IStream),
+    HTab = new_map(),
+    catch(cbc_read_result(IStream,Line,HTab),Exception,(writeln(Exception),close(IStream),handle_exception($existence_error(solution),cbc))),
+    close(IStream),
+    mip_bind_vars(Vars,HTab).
+
+% cbc_read_result(_,Line,_) ?=> println($cbc_read_result(_,Line,_)),fail.
+cbc_read_result(_,end_of_file,_) => true.
+cbc_read_result(_,[],HTab) =>
+    Line = read_line(IStream),
+    cbc_read_result(IStream,Line,HTab).
+cbc_read_result(IStream,['X','_'|_],HTab) => 
+    Line = read_line(IStream),
+    cbc_read_result(IStream,Line,HTab).
+cbc_read_result(IStream,['X'|L],HTab) =>
+    L1 = skip_until_number(L),
+    extract_number(L1,L2,NumToken),
+    L3 = skip_until_number(L2),
+    extract_number(L3,_,ValToken),    
+    VNum = to_integer(NumToken),
+    Val = to_number(ValToken),
+    HTab.put(VNum,Val),
+    Line = read_line(IStream),
+    cbc_read_result(IStream,Line,HTab).
+cbc_read_result(IStream,[_|L],HTab) =>
+    cbc_read_result(IStream,L,HTab).
+
+skip_until_number([]) = [].
+skip_until_number(L@[D|_]) = L, number_char(D) => true.
+skip_until_number([_|L]) = skip_until_number(L).
+
+extract_number([],R,Token) => R = [], Token = [].
+extract_number([D|L],R,Token), number_char(D) =>
+    Token = [D|TokenR],
+    extract_number(L,R,TokenR).
+extract_number(L,R,Token) => R = L, Token = [].
+
+number_char('.') => true.
+number_char('+') => true.
+number_char('-') => true.
+number_char('e') => true.
+number_char('E') => true.
+number_char(D) => ascii_digit(D).
+
+%%%
 retrieve_glpk_res(SolFile,Vars) =>
     IStream = open(SolFile),
     Line = read_line(IStream),
@@ -430,16 +493,22 @@ glpk_read_result(IStream,_,HTab) =>
     Line = read_line(IStream),
     glpk_read_result(IStream,Line,HTab).
 
-mip_bind_vars([],_HTab) => true.
-mip_bind_vars([Var|Vars],HTab),var(Var), 
+mip_bind_vars(Vars,HTab) =>
+    Vs = [V : V in Vars, var(V)],
+    (Vs == [] -> true; size(HTab) > 0),
+    mip_bind_vars_aux(Vs,HTab).
+
+mip_bind_vars_aux([],_HTab) => true.
+mip_bind_vars_aux([Var|Vars],HTab),var(Var), 
     bp.get_attr(Var,'$lp',T),
     T = $'$lp_x'(ColNo,_IsInt,_Low,_Up,_),
     Val = HTab.get(ColNo,[]),
     Val !== []
 =>
-    (Var = Val -> true; printf(stderr,"WARNING:: constraints are assumed to be IP unless coefficients or variables are real\n"),handle_exception($invalid_mip_solution(Val),solve)),
-    mip_bind_vars(Vars,HTab).
-mip_bind_vars([Var|Vars],HTab),number(Var) =>
-    mip_bind_vars(Vars,HTab).    
+    (Var = Val -> true; printf(stderr,"ERROR:: invalid value for an integer variable:%w\n",Val), fail),
+    mip_bind_vars_aux(Vars,HTab).
+mip_bind_vars_aux([Var|Vars],HTab) =>
+    (number(Var) -> true; dvar(Var) -> Var = 0; Var = 0.0),
+    mip_bind_vars_aux(Vars,HTab).    
 
     

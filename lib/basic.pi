@@ -50,6 +50,11 @@ apply(S,A1,A2,A3,A4,A5,A6,A7,A8,A9) = _ => throw($meta_meta_call_not_allowed(app
 apply(S,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10) = _ => throw($meta_meta_call_not_allowed(apply(S,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10))).
 arity(Term) = arity(Term).
 array(Term) => array(Term).
+ascii_digit(Char) => digit(Char).
+ascii_alpha(Char) => ascii_alpha(Char).
+ascii_alpha_digit(Char) => ascii_alpha_digit(Char).
+ascii_lowercase(Char) => lowercase(Char).
+ascii_uppercase(Char) => uppercase(Char).
 atom(Term) => atom(Term).
 atom_chars(Atm) = atom_chars(Atm).
 atom_codes(Atm) = atom_codes(Atm).
@@ -57,6 +62,7 @@ atomic(Term) => atomic(Term).
 attr_var(Term) => attr_var(Term).
 avg(ListOrArray) = avg(ListOrArray).
 between(From,To,X) => between(From,To,X).
+bigint(Term) => bigint(Term).
 bind_vars(Term,Val) => bind_vars(Term,Val).
 call(S) => throw($meta_meta_call_not_allowed(call(S))).
 call(S,A1) => throw($meta_meta_call_not_allowed(call(S,A1))).
