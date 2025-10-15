@@ -1,0 +1,19 @@
+import os.
+
+main =>
+    get_global_map().put(root,pwd()),
+    flatten_dir(pwd()).
+
+flatten_dir(Root) =>
+    Dirs = listdir(Root),
+    foreach (File in Dirs, File !== ".", File !== "..")
+       FullName = full_path(Root,File),
+       (directory(FullName) ->
+           flatten_dir(FullName)
+        ;
+           cp(FullName,full_path(get_global_map().get(root),File))
+        )
+    end.
+         
+full_path(Root,Name) =
+    Root++[separator()]++Name.

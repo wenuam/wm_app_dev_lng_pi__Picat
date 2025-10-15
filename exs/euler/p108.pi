@@ -1,8 +1,7 @@
 import cp.
 
 main =>
-    between(5,99999,N),
-    writeln($n(N)),
+    N :: 5..99999,
     R #> 0,
     S #> 0,
     R*S #= N*N,     % 1/(N+R) + 1/(N+S) = 1/N

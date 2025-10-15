@@ -1,6 +1,6 @@
 import cp.
 
-top =>
+main =>
     queens(100).
 
 queens(N) =>

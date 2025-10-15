@@ -6,7 +6,7 @@
 import planner.
 
 main =>  % read facts from stdin
-    read_file_terms().asp().
+    test44.    
 
 asp(As),
     writeln(As),

@@ -18,7 +18,7 @@ import cp.
 
 main => go.
 
-go =>
+go ?=>
 
    N = 11,
    X = new_list(N),
@@ -51,8 +51,7 @@ go =>
    writeln(length=Length),
    nl,
    fail.
-
-
+go => true.
 
 %
 % sequence(?X,+Length,?LBound,?UBound)

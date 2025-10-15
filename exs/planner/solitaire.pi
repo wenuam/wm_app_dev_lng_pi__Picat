@@ -8,7 +8,7 @@ go =>
    test.
 
 main =>  % read facts from stdin
-    read_file_terms().asp().
+    test.
 
 asp(As),
     As1 = [Fact1 : Fact in As, (Fact = $time(T) -> Fact1 = $step(T); Fact1=Fact)],

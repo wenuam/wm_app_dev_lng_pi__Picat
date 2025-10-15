@@ -10,7 +10,7 @@
 import planner.
 
 main =>  % read facts from stdin
-    read_file_terms().asp().
+    testtakaken.
 
 asp(As),
     initialize_table,
@@ -21,8 +21,8 @@ asp(As),
     sort(NGStoneLocs0) = NGStoneLocs,
     sokoban_loc(SokobanLoc),
     max_step(NSteps),
-    plan($s(SokobanLoc,GStoneLocs,NGStoneLocs),NSteps,Plan)
-%    plan_unbounded($s(SokobanLoc,GStoneLocs,NGStoneLocs),NSteps,Plan)
+%    plan($s(SokobanLoc,GStoneLocs,NGStoneLocs),NSteps,Plan)
+    plan_unbounded($s(SokobanLoc,GStoneLocs,NGStoneLocs),NSteps,Plan)
 %    best_plan_unbounded($s(SokobanLoc,GStoneLocs,NGStoneLocs),NSteps,Plan)
 %    best_plan_downward($s(SokobanLoc,GStoneLocs,NGStoneLocs),NSteps,Plan)
 =>

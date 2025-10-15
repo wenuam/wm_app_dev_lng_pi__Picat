@@ -10,7 +10,7 @@ import sat.
 main =>
    go.
 
-go =>
+go ?=>
     inputM(INo,NP,InputM),
     printf("solving %d%n",INo),
     once(subMat(NP,InputM.length,InputM[1].length,InputM)),

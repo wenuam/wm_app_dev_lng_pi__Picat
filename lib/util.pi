@@ -95,7 +95,7 @@ replace_at(List,I,NewVal) = NewList, integer(I),list(List) =>
     replace_list_at(List,I,NewVal,NewList,ErrorFlag),
     (var(ErrorFlag) -> true; handle_exception($out_of_range(I),$replace_at(List,I,NewVal))).
 replace_at(Struct,I,NewVal) = NewStruct, integer(I), struct(Struct) =>
-    Arity = Struct.arity,
+    Arity = len(Struct),
     (I>=1, I=<Arity ->
 	NewStruct = new_struct(Struct.name,Arity),
 	foreach(J in 1 .. Arity) 
@@ -138,7 +138,9 @@ find_ignore_case(String, SubString, From, To) =>
 find_first_of(List,Pattern) = Index,list(List) =>
     find_list_first_of(List,Pattern,1,Index).
 find_first_of(Struct,Pattern) = Index,struct(Struct) =>
-    find_struct_first_of(Struct,Pattern,1,Struct.arity,Index).
+    find_struct_first_of(Struct,Pattern,1,len(Struct),Index).
+find_first_of(Struct,_Pattern) = _ =>
+    handle_exception($compound_expected(Struct),find_first_of).
 
 find_list_first_of([],_Pattern,_CurIndex,Index) => Index = -1.
 find_list_first_of([E|L],Pattern,CurIndex,Index), E != Pattern => % not unifiable
@@ -155,7 +157,9 @@ find_struct_first_of(_,_,CurIndex,_Arity,Index) => Index = CurIndex.
 find_last_of(List,Pattern) = Index,list(List) =>
     find_list_last_of(List,Pattern,1,-1,Index).
 find_last_of(Struct,Pattern) = Index,struct(Struct) =>
-    find_struct_last_of(Struct,Pattern,Struct.arity,Index).
+    find_struct_last_of(Struct,Pattern,len(Struct),Index).
+find_last_of(Struct,_) = _ =>
+    handle_exception($compound_expected(Struct),find_first_of).
 
 find_list_last_of([],_Pattern,_CurIndex,Index0,Index) => Index=Index0.
 find_list_last_of([E|L],Pattern,CurIndex,Index0,Index), E != Pattern => % not unifiable

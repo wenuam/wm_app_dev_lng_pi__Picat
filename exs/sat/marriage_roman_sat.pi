@@ -14,7 +14,7 @@
 import sat.
 
 main =>  % read facts from stdin
-    read_file_terms().asp().
+    test2.
 
 asp(Facts) ?=>
     cl_facts(Facts,$[manAssignsScore(-,-,-),manAssignsScore(+,+,-),womanAssignsScore(-,-,-),womanAssignsScore(+,+,-)]),

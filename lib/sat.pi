@@ -1,4 +1,5 @@
 module sat.
+import common_sat_cp.
 
 % '#!='(X,Y) =>  X #!= Y.
 % '#/\\'(X,Y) =>  X #/\ Y.
@@ -16,6 +17,7 @@ module sat.
 %  '::'(Vars,Domain) => '::'(Vars,Domain).
 % all_different(FDVars) => all_different(FDVars).
 % all_distinct(FDVars) => all_distinct(FDVars).
+% all_different_except_0(Xs) => all_different_except_0(Xs).
 % assignment(FDVars1,FDVars2) => assignment(FDVars1,FDVars2).
 % circuit(L) => circuit(L).
 % count(V,FDVars,Rel,N) => count(V,FDVars,Rel,N).
@@ -39,7 +41,7 @@ module sat.
 % new_dvar() = new_dvar().
 % new_fd_var() = new_fd_var().
 % notin(VarOrVars,D) => notin(VarOrVars,D).
-% regular(X, Q, S, D, Q0, F) => regular(X, Q, S, D, Q0, F).
+% regular(L, Q, S, M, Q0, Fs) => regular(L, Q, S, M, Q0, Fs).
 % serialized(Starts,Durations) => serialized(Starts,Durations).
 % solve(Options,Vars) => solve(Options,Vars)
 % solve(Vars) => solve(Vars).
@@ -113,17 +115,23 @@ fd_disjoint(DVar1,DVar2) =>
 % count(V,FDVars,Rel,N) => count(V,FDVars,Rel,N).
 count(V,FDVars,Rel,N) =>
     (array(FDVars) -> to_list(FDVars)=List; List=FDVars),
-    Total #= sum([B : Elm in List, B#<=>(V #= Elm)]),
-    count_aux(Total,Rel,N).
+    reified_bool_vars(List,V,Bs),
+    count_aux(Bs,Rel,N).
 
-count_aux(Total,'#=',N) => Total #= N.
-count_aux(Total,'#!=',N) => Total #!= N.
-count_aux(Total,'#\\=',N) => Total #!= N.
-count_aux(Total,'#>',N) => Total #> N.
-count_aux(Total,'#>=',N) => Total #>= N.
-count_aux(Total,'#<',N) => Total #< N.
-count_aux(Total,'#=<',N) => Total #=< N.
-count_aux(Total,'#<=',N) => Total #<= N.
+reified_bool_vars([],_V,Bs) => Bs=[].
+reified_bool_vars([E|List],V,Bs) =>
+    Bs = [B|BsR],
+    B #<=> (V #= E),
+    reified_bool_vars(List,V,BsR).
+
+count_aux(Bs,'#=',N) => sum(Bs) #= N.
+count_aux(Bs,'#!=',N) => sum(Bs) #!= N.
+count_aux(Bs,'#\\=',N) => sum(Bs) #!= N.
+count_aux(Bs,'#>',N) => sum(Bs) #> N.
+count_aux(Bs,'#>=',N) => sum(Bs) #>= N.
+count_aux(Bs,'#<',N) => sum(Bs) #< N.
+count_aux(Bs,'#=<',N) => sum(Bs) #=< N.
+count_aux(Bs,'#<=',N) => sum(Bs) #=< N.
 
 % cumulative(Starts,Durations,Resources,Limit) => cumulative(Starts,Durations,Resources,Limit).
 cumulative(Starts,Durations,Resources,Limit) =>
@@ -140,6 +148,8 @@ diffn(RectangleList) =>
 % assignment(FDVars1,FDVars2) => assignment(FDVars1,FDVars2).
 assignment(FDVars1,FDVars2) =>
     bp.picat_preprocess_assignment(FDVars1,FDVars2,Vect1,Vect2,N),
+    all_different(FDVars1),
+    all_different(FDVars2),
     foreach(I in 1..N, J in 1..N)
         (Vect1[I] #= J) #<=> (Vect2[J] #= I)
     end.
@@ -149,23 +159,24 @@ solve(Vars) => solve([],Vars).
 
 % solve(Options,Vars) => solve(Options,Vars)
 solve(Options,Vars) =>
-%    bp.picat_check_solve_vars(Vars,solve,VList),
-    vars(Vars) = VList,
+    (bp.dvar_or_int_list(Vars) -> VList = Vars; vars(Vars) = VList),
     (select($report(Call),Options,Options1) ->
-	    Options2 = [$report('$dyna_eval_pred'(['$picat_top_level'],Call))|Options1]
+        Options2 = [$report('$dyna_eval_pred'(['$picat_top_level'],Call))|Options1]
     ;
-		Options2 = Options
+        Options2 = Options
     ),
-    bp.sat_solve(Options2,VList).    
+    (select($dump(File),Options2,Options3) ->
+        AtomFile = to_atom(File),
+        Options4 = [$dump(AtomFile)|Options3]
+    ;         
+        Options4 = Options2
+    ),        
+    bp.sat_solve(Options4,VList).    
 
-% solve_all(Vars) = solve_all(Vars).
-solve_all(Vars) = AllSols =>
-%    bp.picat_check_solve_vars(Vars,solve_all,VList),
-    vars(Vars) = VList,
-    bp.sat_solve_all(VList,VLists),
-    findall(Vars,(member(Sol,VLists),VList=Sol)) = AllSols.
+solve_all(Vars) = solve_all([],Vars).
 
-solve_all(_Options,Vars) = solve_all(Vars).
+solve_all(Options,Vars) =
+    findall(Vars,solve(Options,Vars)).
 
 %%%%%%%%%%%%%%%%%%%%%%%% common to cp and sat modules %%%%%%%%%%%%%%%%%%%%%%
 % new_fd_var() = new_fd_var().
@@ -273,18 +284,27 @@ circuit_aux(A) =>
     N=length(A),
     A :: 1..N,
     all_different(A),
-    foreach(I in 1..N) A[I] #!= I end,   % not reflexive
+    foreach(I in 1..N) A[I] #!= I end,          % not reflexive
     %
-    OrderArr = new_array(N),                % order the nodes, starting at 1, then Ai, ...
+    OrderArr = new_array(N),                    % order the nodes, starting at 1, then A[1], ...
     OrderArr :: 1..N,
-    OrderArr[1] = 1,                        % a circuit is a path that starts at 1 and ends at 1
+    OrderArr[1] = 1,                            % a circuit is a path that starts at 1 and ends at 1
     all_different(OrderArr),
-    foreach(I in 1..N, J in 1..N, I!==J)
-        A[I]#=J #=> (OrderArr[I]#=N #=> OrderArr[J]#=1) #/\ 
-                    (OrderArr[I]#!=N #=> OrderArr[J]#=OrderArr[I]+1)
+    %
+    foreach(J in 2..N)                
+        A[1] #= J #<=> OrderArr[J] #= 2         % J is visited second
+    end,
+    %
+    foreach(I in 2..N)                             
+        A[I] #= 1 #<=> OrderArr[I] #= N         % I is visited last
+    end,
+    %
+    foreach(I in 2..N, J in 2..N, I !== J)
+        A[I] #= J #<=> OrderArr[J] #= OrderArr[I]+1
     end.
 
 global_cardinality(List,Pairs) =>
+    (bp.check_pairs(Pairs) -> true; handle_exception($pairs_expected(Pairs),global_cardinality)),
     foreach($Key-V in Pairs) 
          sum([B : E in List, B #<=> (E#=Key)]) #= V
     end.
@@ -299,6 +319,7 @@ serialized(Starts,Durations) =>
 subcircuit(L):  L is a list or an array of variables X1,X2,...,Xn.
 L forms a subcircuit where Xi = j (j \= i) means that j is the successor of i 
 and Xi = i means that i is not in the circuit. No sub-cycles are allowed.
+Based on the Minizinc implementation.
 *************************************************************************/
 subcircuit(L),list(L) =>
     subcircuit_aux(L,L.to_array()).
@@ -329,69 +350,18 @@ subcircuit_aux(L,A) =>
         end
     end.                         
 
-/*
-  This is a translation of MiniZinc's regular constraint (defined in
-  lib/zinc/globals.mzn), via the Comet code refered above.
-  by Hakan Kjellerstrand, 2014
+/************************************************************************* 
+    regular(L,Q,S,M,Q0,Fs)
 
-  All comments are from the MiniZinc code.
-  """
-  regular(array[int] of var int: x, int: Q, int: S, array[int,int] of int: d, int: q0, set of int: F)
-  The sequence of values in array 'x' (which must all be in the range 1..S)
-  is accepted by the DFA of 'Q' states with input 1..S and transition
-  function 'd' (which maps (1..Q, 1..S) -> 0..Q)) and initial state 'q0'
-  (which must be in 1..Q) and accepting states 'F' (which all must be in
-  1..Q).  We reserve state 0 to be an always failing state.
-  """
-  
-  x : IntVar array
+  L : A sentence (an IntVar array or list)
   Q : number of states
-  S : input_max
-  d : transition matrix
-  q0: initial state
+  S : input_max, inputs are from 1 to S
+  M : transition matrix (the entry M[I,J] is a list of outgoing states for NFA)
+  Q0: initial state
   F : accepting states
-*/
-regular(X, Q, S, D, Q0, F) =>
-    % println($regular(X, Q, S, D, Q0, F)),
-    % If x has index set 1..n-1, then a[1] holds the initial state
-    % (q0), and a[i+1] holds the state we're in after  processing
-    % x[i].  If a[n] is in F, then we succeed (ie. accept the string).
-
-    N2 = X.length+1,
-    A = new_array(N2),
-    A :: 1..Q,
-    X :: 1..S,  % Do this in case it's a var.
-
-    A[1] #= Q0, % initial state
-    (list(D) ->bp.list_matrix_to_array_matrix(D,ArrD); ArrD=D),
-    (cp_check_matrix(ArrD,NRows,NCols) -> true; throw($invalid_matrix(D,regular))),
-
-    foreach(I in 1..X.length)  
-       % X[I] :: 1..S,      % Do this in case it's a var.
-       % Here is MiniZinc's infamous matrix element
-       % which I try to translate here:
-       %     a[i+1] = d[a[i], x[i]]
-        matrix_element(ArrD,NRows,NCols,A[I], X[I], A[I+1])
-    end,
-    element(_,F,A[N2]).
-
-cp_check_matrix(M,NRows,NCols) =>
-    NRows = M.length,
-    NCols = M[1].length,
-    foreach(R in 2..NRows) 
-        M[R].length==NCols 
-    end.
-
-%%
-%% matrix_element/4
-%% by Neng-Fa Zhou and Hakan Kjellerstrand
-%%
-matrix_element(M,NRows,NCols,I,J,Val) =>
-    I :: 1..NRows,
-    J :: 1..NCols,
-    foreach(I1 in 1..NRows, J1 in 1..NCols)
-        (I1 #= I #/\ J1 #= J) #=> M[I1,J1] #= Val    
-    end.
+***************************************************************************/
+regular(L, Q, S, M, Q0, Fs) =>
+    regular(L, Q, S, M, Q0, Fs, sat).  % defined in "common_sat_cp.pi"
 
 %%
 %% lex_le(L1,L2): collection L1 is lexicographically less than or equal to L2
@@ -442,22 +412,22 @@ lex_le_aux([X1,X2],[Y1,Y2|_]) => (X1 #< Y1) #\/ (X1 #= Y1 #/\ (X2 #=< Y2)).
 lex_le_aux(L1,L2) =>
     N1 = length(L1),
     N2 = length(L2),
-	(N1 > N2 ->
-	    L11 = new_list(N2),
-		once(append(L11,_,L1)),
-		lex_lt_aux(L11,L2)
-	;		
-	    N = N1,
-		A1 = to_array(L1),
-    	A2 = to_array(L2),
-    	ReifLexLE = new_array(N),
-    	ReifLexLE :: 0..1,
-    	ReifLexLE[N] #<=> (A1[N] #=< A2[N]),
-    	foreach(I in 2..N-1)
+    (N1 > N2 ->
+        L11 = new_list(N2),
+        once(append(L11,_,L1)),
+        lex_lt_aux(L11,L2)
+    ;        
+        N = N1,
+        A1 = to_array(L1),
+        A2 = to_array(L2),
+        ReifLexLE = new_array(N),
+        ReifLexLE :: 0..1,
+        ReifLexLE[N] #<=> (A1[N] #=< A2[N]),
+        foreach(I in 2..N-1)
             ReifLexLE[I] #<=> (A1[I] #< A2[I] #\/ ((A1[I] #= A2[I]) #/\ ReifLexLE[I+1]))
-    		end,
-    	A1[1] #< A2[1] #\/ ((A1[1] #= A2[1]) #/\ ReifLexLE[2])
-	).
+            end,
+        A1[1] #< A2[1] #\/ ((A1[1] #= A2[1]) #/\ ReifLexLE[2])
+    ).
 
 lex_lt_aux([],_) => true.
 lex_lt_aux([X],[Y]) => X #< Y.
@@ -466,20 +436,102 @@ lex_lt_aux([X1,X2],[Y1,Y2]) => (X1 #< Y1) #\/ (X1 #= Y1 #/\ (X2 #< Y2)).
 lex_lt_aux([X1,X2],[Y1,Y2|_]) => (X1 #< Y1) #\/ (X1 #= Y1 #/\ (X2 #=< Y2)).
 lex_lt_aux(L1,L2) =>
     N1 = length(L1),
-	N2 = length(L2),
-	(N1 >= N2 ->
-	    N = N2,
-		A1 = to_array(L1),
-    	A2 = to_array(L2),
-    	ReifLexLE = new_array(N),
-    	ReifLexLE :: 0..1,
-    	ReifLexLE[N] #<=> (A1[N] #< A2[N]),
-    	foreach(I in 2..N-1)
+    N2 = length(L2),
+    (N1 >= N2 ->
+        N = N2,
+        A1 = to_array(L1),
+        A2 = to_array(L2),
+        ReifLexLE = new_array(N),
+        ReifLexLE :: 0..1,
+        ReifLexLE[N] #<=> (A1[N] #< A2[N]),
+        foreach(I in 2..N-1)
             ReifLexLE[I] #<=> (A1[I] #< A2[I] #\/ ((A1[I] #= A2[I]) #/\ ReifLexLE[I+1]))
-    	end,
-    	A1[1] #< A2[1] #\/ ((A1[1] #= A2[1]) #/\ ReifLexLE[2])
-	;
+        end,
+        A1[1] #< A2[1] #\/ ((A1[1] #= A2[1]) #/\ ReifLexLE[2])
+    ;
         L22 = new_list(N1),
         once(append(L22,_,L2)),
-	    lex_le_aux(L1,L22)
-	).
+        lex_le_aux(L1,L22)
+    ).
+
+%%
+nvalue(N,L) => bp.'$nvalue'(N,L).
+
+%% The following constraints are proposed and implemented by Hakan Kjellerstrand
+matrix_element(M,I,J,MIJ) =>
+    cp_check_matrix(M,NRows,NCols),
+    matrix_element(M,NRows,NCols,I,J,MIJ,cp).
+
+%
+% Scalar product of the list A and X
+%
+scalar_product(A, X, Product) => 
+    scalar_product(A, X, '#=', Product).
+
+%
+% scalar product of List A and X, with one of the relations: 
+% 
+%   #=, #<, #>, #<=, #>=, #!=
+%
+scalar_product(A, X, '#=', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #= Product.
+
+scalar_product(A, X, '#!=', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #!= Product.
+
+scalar_product(A, X, '#>=', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #>= Product.
+
+scalar_product(A, X, '#>', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #> Product.
+
+scalar_product(A, X, '#<=', Product) => 
+   check_scalars(A,X),
+    scalar_product(A, X, '#=<', Product).
+
+scalar_product(A, X, '#=<', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #=< Product.
+
+scalar_product(A, X, '#<', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #< Product.
+
+%
+% Requires that all non-zero values in Xs be distinct.
+%
+all_different_except_0(Xs) =>
+    alldifferent_except_0(Xs).
+
+alldifferent_except_0(Xs) =>
+  foreach(I in 1..Xs.length, J in 1..I-1)
+     (Xs[I] #!= 0 #/\ Xs[J] #!= 0) #=> (Xs[I] #!= Xs[J])
+   end.
+
+%
+% exactly(?N,?X,?V)
+%
+% Requires that exactly N variables in X takes the value V.
+%
+exactly(N, X, V) =>
+  count(V,X,#=,N).
+
+%
+% at_most(?N,?X,?V)
+%
+% Requires that atmost N variables in X takes the value V.
+%
+at_most(N,X,V) => 
+  count(V,X,#=<,N).
+
+%
+% at_least(?N,?X,?V)
+%
+% Requires that atleast N variables in X takes the value V.
+%
+at_least(N,X,V) => 
+  count(V,X,#>=,N).

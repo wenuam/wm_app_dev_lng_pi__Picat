@@ -1,12 +1,8 @@
-/* 
-    Tentative implementation of part of the os module. 
-    Not efficient. Needs to be redone later.
-*/
 module os.
 
 % cd(Path) => cd(Path).
 % chdir(Path) => chdir(Path).
-% cp(Path1,Path2) => cp(Path1,Path2).
+% cp(SrcPath,DestPath) => cp(SrcPath,DestPath).
 % cwd() = cwd().
 % dir => dir.
 % directory(Path) => directory(Path).
@@ -23,7 +19,7 @@ module os.
 % mkdir(Path) => mkdir(Path).
 % pwd() = pwd().
 % readable(Path) => readable(Path).
-% rename(Path1,Path2) => rename(Path1,Path2).
+% rename(OldPath,NewPath) => rename(OldPath,NewPath).
 % rm(Path) => rm(Path).
 % rmdir(Path) => rmdir(Path).
 % separator() = separator().
@@ -34,12 +30,12 @@ module os.
 % chdir(Path) => chdir(Path).
 chdir(String) => cd(String).
 
+check_path(Path),atom(Path) => true.
+check_path(Path) => string(Path).
+
 % cd(Path) => cd(Path).
-cd(Atom), atom(Atom) =>
-    bp.cd(Atom).    
-cd(String), string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    bp.cd(Atom).
+cd(Path), check_path(Path) =>
+    bp.c_chdir(Path).    
 cd(String) =>
     handle_exception($string_expected(String),cd).
 
@@ -55,11 +51,11 @@ cp(String1,String2),
 =>
     picat_copy_file(String1,String2).
 cp(String1,String2) =>
-    Source = $cp(String1,String2),
+    Source = cp,
     (string(String1) ->
-	    handle_exception($string_expected(String2),Source)
+        handle_exception($string_expected(String2),Source)
     ;
-		handle_exception($string_expected(String1),Source)
+        handle_exception($string_expected(String1),Source)
     ).
 
 picat_copy_file(Path1,_Path2),directory(Path1) =>
@@ -67,27 +63,27 @@ picat_copy_file(Path1,_Path2),directory(Path1) =>
 picat_copy_file(Path1,Path2),directory(Path2) =>
     ((append(PrePath2,"/",Path2);append(PrePath2,"\\",Path2)) -> true; PrePath2 = Path2),  % trim trailing "/" or "\\"
     ((member(Separator,['/','\\']),append(_,[Separator|MainFile1],Path1), not member('\\',MainFile1), not member('/',MainFile1)) ->
-	    true
-	;
-		MainFile1=Path1
-	),
-	picat_copy_file_aux(Path1,PrePath2++[separator()]++MainFile1).
+        true
+    ;
+        MainFile1=Path1
+    ),
+    picat_copy_file_aux(Path1,PrePath2++[separator()]++MainFile1).
 picat_copy_file(Path1,Path2) =>
     picat_copy_file_aux(Path1,Path2).
 
+picat_copy_file_aux(Path,Path) => true. % can't copy onto itself
 picat_copy_file_aux(Path1,Path2) =>
     FDr = open(Path1),
     FDw = open(Path2,write),
-	bp.picat_get_out_fdindex(FDw,OutIndex),
+    bp.picat_get_out_fdindex(FDw,OutIndex),
     bp.picat_get_in_fdindex(FDr,InIndex),
-	bp.c_CP_FILE_cc(InIndex,OutIndex),
-	FDr.close(),
-	FDw.close().
+    bp.c_CP_FILE_cc(InIndex,OutIndex),
+    FDr.close(),
+    FDw.close().
 
 % cwd() = cwd().
 cwd() = Path =>
-    bp.get_cwd(Dir),
-    Path = to_string(Dir).
+    bp.c_PICAT_GET_CWD_f(Path).
 
 % dir => dir.
 dir =>
@@ -95,27 +91,17 @@ dir =>
     (OS==windows -> bp.dir; bp.ls).
 
 % directory(Path) => directory(Path).
-directory(Atom),atom(Atom) =>
-    bp.exists(Atom),
-    bp.c_file_type(Atom,Type),
-    Type==directory.
-directory(String),string(String) =>
-    bp.picat_string_to_atom(String,Atom),    
-    bp.exists(Atom),
-    bp.c_file_type(Atom,Type),
+directory(Path),check_path(Path) =>
+    exists(Path),
+    bp.c_file_type(Path,Type),
     Type==directory.
 directory(String) =>
     handle_exception($string_expected(String),directory).
 
 % file(Path) => file(Path).
-file(Atom),atom(Atom) =>
-    bp.exists(Atom),
-    bp.c_file_type(Atom,Type),
-    Type==regular.
-file(String),string(String) =>
-    bp.picat_string_to_atom(String,Atom),    
-    bp.exists(Atom),
-    bp.c_file_type(Atom,Type),
+file(Path),check_path(Path) =>
+    exists(Path),
+    bp.c_file_type(Path,Type),
     Type==regular.
 file(String) =>
     handle_exception($string_expected(String),file).
@@ -126,7 +112,7 @@ file_base_name(Atom) = Name, atom(Atom) =>
     file_base_name(String) = Name.
 file_base_name(String) = Name, string(String) =>
     ((append(_,['/'|Base],String),not member('/',Base),not member('\\',Base))->
-	Name=Base
+        Name=Base
     ; (append(_,['\\'|Base],String),not member('/',Base),not member('\\',Base))->
         Name=Base
     ;
@@ -142,7 +128,7 @@ file_directory_name(Atom) = Name, atom(Atom) =>
     file_directory_name(String) = Name.
 file_directory_name(String) = Name, string(String) =>
     ((append(Pre,['/'|Base],String),not member('/',Base),not member('\\',Base))->
-	Name=Pre
+    Name=Pre
     ; (append(Pre,['\\'|Base],String),not member('/',Base),not member('\\',Base))->
         Name=Pre
     ;
@@ -152,136 +138,102 @@ file_directory_name(String) = _Name =>
     handle_exception($string_expected(String),file_directory_name).    
 
 % file_exists(Path) => file_exists(Path).
-file_exists(Atom),atom(Atom) =>
-    bp.file_exists(Atom).
-file_exists(String),string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    bp.file_exists(Atom).
+file_exists(Path),check_path(Path) =>
+    bp.b_ACCESS_ccf(Path,0,0).
 file_exists(String) =>
     handle_exception($string_expected(String),file_exists).
 
 % env_exists(Name) => env_exists(Name).
-env_exists(Atom),atom(Atom) =>
-    bp.picat_getenv(Atom,_).
-env_exists(String),string(String) =>
-    bp.picat_string_to_atom(String,Atom),    
-    bp.picat_getenv(Atom,_).
+env_exists(Path),check_path(Path) =>
+    bp.picat_getenv(Path,_).
+env_exists(String) =>
+    handle_exception($string_expected(String),env_exists).
 
 % getenv(Name) = getenv(Name).
-getenv(Atom)=Paths,atom(Atom) =>
-    (bp.picat_getenv(Atom,Paths) -> true; handle_exception($no_environment_var(Atom),getenv)).
-getenv(String)=Paths,string(String) =>
-    bp.picat_string_to_atom(String,Atom),    
-    (bp.picat_getenv(Atom,Paths) -> true; handle_exception($no_environment_var(String),getenv)).
+getenv(Path)=Paths,check_path(Path) =>
+    (bp.picat_getenv(Path,Paths) -> true; handle_exception($no_environment_var(Path),getenv)).
 getenv(String)=_Paths =>
     handle_exception($string_expected(String),getenv).    
 
 % executable(Path) => executable(Path).
-executable(Atom), atom(Atom) =>
-    bp.exists(Atom),
-    bp.file_property(Atom,$permission(execute)).
-executable(String), string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    bp.exists(Atom),
-    bp.file_property(Atom,$permission(execute)).
+executable(Path), check_path(Path) =>
+    exists(Path),
+    bp.file_property(Path,$permission(execute)).
 executable(String) =>
     handle_exception($string_expected(String),executable).
 
 % exists(Path) => exists(Path).
-exists(Atom),atom(Atom) =>
-    bp.exists(Atom).
-exists(String),string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    bp.exists(Atom).
+exists(Path),check_path(Path) =>
+    bp.b_ACCESS_ccf(Path,0,0).
 exists(String) =>
     handle_exception($string_expected(String),exists).
 
 % listdir(Path) = listdir(Path).
-listdir(Atom)=List, atom(Atom) => 
-    picat_listdir(Atom,List).
-listdir(String)=List, string(String) => 
-    bp.picat_string_to_atom(String,Atom),
-    picat_listdir(Atom,List).
+listdir(Path)=List, check_path(Path) => 
+    picat_listdir(Path,List).
 listdir(String)=_List =>
     handle_exception($string_expected(String),listdir).
 
-picat_listdir(Atom,List),directory(Atom) =>
-    bp.directory_files(Atom,AList),
-    List=[to_string(E) : E in AList].
-picat_listdir(Atom,_List) =>
-    handle_exception($directory_expected(Atom),listdir).    
+picat_listdir(Path,List),directory(Path) =>
+    bp.c_directory_files(Path,List).
+picat_listdir(Path,_List) =>
+    handle_exception($directory_expected(Path),listdir).    
 
 % ls => ls.
 ls =>
     dir.
 
 % mkdir(Path) => mkdir(Path).
-mkdir(Atom), atom(Atom) => 
-    bp.make_directory(Atom).
-mkdir(String), string(String) => 
-    bp.picat_string_to_atom(String,Atom),
-    bp.make_directory(Atom).
+mkdir(Path), check_path(Path) => 
+    bp.make_directory(Path).
 mkdir(String) =>
     handle_exception($string_expected(String),mkdir).
 
 % pwd() = pwd().
-pwd() = Path =>
-    bp.get_cwd(Dir),
-    Path = to_string(Dir).
+pwd() = cwd().
 
 % rename(Path1,Path2) => rename(Path1,Path2).
-rename(Atom1,Atom2),
-    atom(Atom1),
-    atom(Atom2)
+rename(Path1,Path2),
+    check_path(Path1),
+    check_path(Path2)
 =>
-    bp.rename_file(Atom1,Atom2).
-rename(String1,String2),
-    string(String1),
-    string(String2)
-=>
-    bp.picat_string_to_atom(String1,Atom1),
-    bp.picat_string_to_atom(String2,Atom2),
-    bp.rename_file(Atom1,Atom2).
+    bp.rename_file(Path1,Path2).
 rename(String1,String2) =>
     Source = $rename(String1,String2),
     (string(String1) ->
-	handle_exception($string_expected(String2),Source)
+        handle_exception($string_expected(String2),Source)
     ;
-	handle_exception($string_expected(String1),Source)
+        handle_exception($string_expected(String1),Source)
     ).
 
 % readable(Path) => readable(Path).
-readable(Atom), atom(Atom) =>
-    bp.exists(Atom),
-    bp.file_property(Atom,$permission(read)).
-readable(String), string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    bp.exists(Atom),
-    bp.file_property(Atom,$permission(read)).
+readable(Path), check_path(Path) =>
+    exists(Path),
+    bp.file_property(Path,$permission(read)).
 readable(String) =>
     handle_exception($string_expected(String),readable).
 
 % rm(Path) => rm(Path).
-rm(Atom), atom(Atom) =>
-    picat_delete_file(Atom).
-rm(String), string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    picat_delete_file(Atom).
+rm(Path), check_path(Path) =>
+    picat_delete_file(Path).
 rm(String) =>
     handle_exception($string_expected(String),rm).    
     
 picat_delete_file(Name) =>
     (file(Name)->true; handle_exception($file_expected(Name),rm)),
     (bp.delete_file(Name) -> true;  handle_exception($file_not_deleted(Name),rm)).
-	
+    
 % rmdir(Path) => rmdir(Path).
-rmdir(Atom), atom(Atom) =>
-    picat_delete_directory(Atom).
-rmdir(String), string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    picat_delete_directory(Atom).
-rmdir(String) =>
-    handle_exception($string_expected(String),rmdir).    
+rmdir(Path) =>
+    (check_path(Path) ->
+	    (exists(Path) ->
+		    picat_delete_directory(Path)
+		;
+		    handle_exception($directory_expected(String),rmdir)
+		)
+	;
+	    handle_exception($string_expected(String),rmdir)
+	).
 
 picat_delete_directory(Name) =>
     (bp.delete_directory(Name) -> true; handle_exception($dir_not_deleted(Name),rmdir)).
@@ -292,23 +244,15 @@ separator() = Char =>
     (OS==windows -> Char='\\'; Char='/').
 
 % size(Path) = size(Path). size/1 is defined in basic, so must be module qualified as os.size(File).
-size(Atom) = Size, atom(Atom) =>
-    bp.file_property(Atom,$size(Size)).
-size(String) = Size, string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    bp.file_property(Atom,$size(Size)).
+size(Path) = Size, check_path(Path) =>
+    bp.file_property(Path,$size(Size)).
 size(String) = _ =>
     handle_exception($string_expected(String),size).
 
 % writable(Path) => writable(Path).
-writable(Atom), atom(Atom) =>
-    bp.exists(Atom),
-    bp.file_property(Atom,$permission(write)).
-writable(String), string(String) =>
-    bp.picat_string_to_atom(String,Atom),
-    bp.exists(Atom),
-    bp.picat_string_to_atom(String,Atom),
-    bp.file_property(Atom,$permission(write)).
+writable(Path),check_path(Path) =>
+    exists(Path),
+    bp.file_property(Path,$permission(write)).
 writable(String) => 
     handle_exception($string_expected(String),writable).
     

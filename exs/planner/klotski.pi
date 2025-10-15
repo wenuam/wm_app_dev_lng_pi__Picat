@@ -7,8 +7,8 @@ import planner.
 
 main =>
     initial(S0),
-%    best_plan_downward(S0,Plan),     
-    plan(S0,116,Plan,PlanLen),     
+    best_plan_downward(S0,Plan),     
+%    plan(S0,116,Plan,PlanLen),     
     writeln(Plan),
     writeln(len=PlanLen).
 

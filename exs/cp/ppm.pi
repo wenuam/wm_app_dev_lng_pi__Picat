@@ -5,7 +5,7 @@
 import cp.
 
 main =>
-    read_file_terms().asp().
+    test.
 
 go => test.
 

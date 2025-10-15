@@ -14,11 +14,8 @@
 
 import planner.
 
-go =>
+main =>
    test1.
-
-main =>  % read facts from stdin
-    read_file_terms().asp().
 
 asp(Facts),
     cl_facts(Facts, $[fuelcost(-,+,-), at(+,-)]),

@@ -3,6 +3,8 @@
 
 import sat.
 
+main => test.
+
 asp(As) =>
     cl_facts(As,$[edge(+,+)]),
     node(N),

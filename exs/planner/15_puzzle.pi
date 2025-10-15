@@ -14,14 +14,14 @@
 import planner.
 
 main =>  % read facts from stdin
-    read_file_terms().asp().
+    test_hard.
 
 asp(As) =>
     cl_facts(As,[$in0(-,-,+)]),
     Board = [[R|C] : I in 0..15, in0(R,C,I)],
     writeln(Board),
     maxtime(MaxStep),
-    best_plan_downward(Board,MaxStep,Plan),
+    best_plan(Board,MaxStep,Plan),
     writeln(Plan).
    
 

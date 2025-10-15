@@ -1,4 +1,5 @@
 module cp.
+import common_sat_cp.
 
 % '#!='(X,Y) => X #!= Y.
 % '#/\\'(X,Y) => X #/\ Y.
@@ -16,6 +17,7 @@ module cp.
 %  '::'(Vars,Domain) => '::'(Vars,Domain).
 % all_different(FDVars) => all_different(FDVars).
 % all_distinct(FDVars) => all_distinct(FDVars).
+% all_different_except_0(Xs) => all_different_except_0(Xs).
 % assignment(FDVars1,FDVars2) => assignment(FDVars1,FDVars2).
 % circuit(FDVars) => circuit(FDVars).
 % count(V,FDVars,Rel,N) => count(V,FDVars,Rel,N).
@@ -45,7 +47,8 @@ module cp.
 % notin(VarOrVars,D) => notin(VarOrVars,D).
 % lex_lt(L1,L2) = > lex_lt(L1,L2).
 % lex_le(L1,L2) = > lex_le(L1,L2).
-% regular(X, Q, S, D, Q0, F) => regular(X, Q, S, D, Q0, F).
+% nvalue(N,L) => nvalue(N,L).
+% regular(X, Q, S, D, Q0, Fs) => regular(X, Q, S, D, Q0, Fs).
 % serialized(Starts,Durations) => serialized(Starts,Durations).
 % solve(Options,Vars) => solve(Options,Vars)
 % solve(Vars) => solve(Vars).
@@ -102,7 +105,7 @@ solve(Vars) => solve([],Vars).
 
 % solve(Options,Vars) => solve(Options,Vars)
 solve(Options,Vars) =>
-    vars(Vars) = VList,
+    (bp.dvar_or_int_list(Vars) -> VList = Vars; vars(Vars) = VList),
     (select($report(Call),Options,Options1) ->
         Options2 = [$report('$dyna_eval_pred'(['$picat_top_level'],Call))|Options1]
     ;
@@ -192,10 +195,9 @@ fd_set_false(FDVar,Elm) =>
     ).
 
 % global_cardinality(FDVars,Pairs) => global_cardinality(FDVars,Pairs).
-global_cardinality(FDVars,Pairs) =>
-    (array(FDVars) -> to_list(FDVars)=List; List=FDVars),
-    (array(Pairs) -> to_list(Pairs)=PList; PList=Pairs),
-    bp.global_cardinality(List,PList).
+global_cardinality(List,Pairs) =>
+    (bp.check_pairs(Pairs) -> true; handle_exception($pairs_expected(Pairs),global_cardinality)),
+    bp.global_cardinality(List,Pairs).
 
 % indomain(Var) => indomain(Var).
 indomain(Var),dvar(Var) =>
@@ -277,7 +279,7 @@ fd_min(FDVar) = Min => (dvar_or_int(FDVar)->bp.domain_min_max(FDVar,Min,_);handl
 % fd_min_max(FDVar,Min,Max) => fd_min_max(FDVar,Min,Max).
 fd_min_max(FDVar,Min,Max) => 
     (dvar_or_int(FDVar)->
-    bp.domain_min_max(FDVar,Min,Max)
+	    bp.domain_min_max(FDVar,Min,Max)
     ;
         handle_exception($dvar_expected(FDVar),fd_min_max)
     ).
@@ -320,83 +322,18 @@ fd_true(FDVar,Elm) =>
 fd_vector_min_max(Min,Max) =>
     bp.fd_vector_min_max(Min,Max).
 
-/*
-  This is a translation of MiniZinc's regular constraint (defined in
-  lib/zinc/globals.mzn), via the Comet code refered above.
-  by Hakan Kjellerstrand, 2014
+/************************************************************************* 
+    regular(L,Q,S,M,Q0,Fs)
 
-  All comments are from the MiniZinc code.
-  """
-  regular(array[int] of var int: x, int: Q, int: S, array[int,int] of int: d, int: q0, set of int: F)
-  The sequence of values in array 'x' (which must all be in the range 1..S)
-  is accepted by the DFA of 'Q' states with input 1..S and transition
-  function 'd' (which maps (1..Q, 1..S) -> 0..Q)) and initial state 'q0'
-  (which must be in 1..Q) and accepting states 'F' (which all must be in
-  1..Q).  We reserve state 0 to be an always failing state.
-  """
-  
-  x : IntVar array
+  L : A sentence (an IntVar array or list)
   Q : number of states
-  S : input_max
-  d : transition matrix
-  q0: initial state
-  F : accepting states
-*/
-regular(X, Q, S, D, Q0, F) =>
-    % println($regular(X, Q, S, D, Q0, F)),
-    % If x has index set 1..n-1, then a[1] holds the initial state
-    % (q0), and a[i+1] holds the state we're in after  processing
-    % x[i].  If a[n] is in F, then we succeed (ie. accept the string).
-
-    N2 = X.length+1,
-    A = new_array(N2),
-    A :: 1..Q,
-    X :: 1..S,  % Do this in case it's a var.
-
-    A[1] #= Q0, % initial state
-    (list(D) ->bp.list_matrix_to_array_matrix(D,ArrD); ArrD=D),
-    (cp_check_matrix(ArrD,NRows,NCols) -> true; throw($invalid_matrix(D,regular))),
-    (ground(ArrD) -> IsGround=1; IsGround=0),    
-
-    foreach(I in 1..X.length)  
-       % X[I] :: 1..S,      % Do this in case it's a var.
-       % Here is MiniZinc's infamous matrix element
-       % which I try to translate here:
-       %     a[i+1] = d[a[i], x[i]]
-       (IsGround==1 -> 
-           ground_matrix_element(ArrD,NRows,NCols,A[I], X[I], A[I+1])
-       ;
-           nonground_matrix_element(ArrD,NRows,NCols,A[I], X[I], A[I+1])
-       )
-    end,
-    element(_,F,A[N2]).
-
-cp_check_matrix(M,NRows,NCols) =>
-    NRows = M.length,
-    NCols = M[1].length,
-    foreach(R in 2..NRows) 
-        M[R].length==NCols 
-    end.
-
-%%
-%% matrix_element/4
-%% by Neng-Fa Zhou and Hakan Kjellerstrand
-%%
-ground_matrix_element(M,NRows,NCols,I,J,Val) =>
-    I :: 1..NRows,
-    J :: 1..NCols,
-    Table = [(R,C,M[R,C]) : R in 1..NRows, C in 1..NCols],
-    table_in((I,J,Val),Table).
-
-nonground_matrix_element(M,NRows,NCols,I,J,Val) =>
-    I :: 1..NRows,
-    J :: 1..NCols,
-    wait_until_ij(M,I,J,Val).
-
-% wait until I and J become ground
-wait_until_ij(_M,I,J,_Val),var(I),{ins(I),ins(J)} => true.
-wait_until_ij(_M,_I,J,_Val),var(J),{ins(J)} => true.
-wait_until_ij(M,I,J,Val) => Val=M[I,J].
+  S : input_max, inputs are from 1 to S
+  M : transition matrix (the entry M[I,J] is a list of outgoing states for NFA)
+  Q0: initial state
+  Fs : accepting states
+***************************************************************************/
+regular(L,Q,S,M,Q0,F) =>
+    regular(L,Q,S,M,Q0,F,cp).   % defined in "common_sat_cp.pi"
 
 %%
 %% lex_le(L1,L2): collection L1 is lexicographically less than or equal to L2
@@ -536,4 +473,86 @@ watch_lex_lt(X,Y,Xs,Ys) =>  % come here when both X, Y become integers
     ; 
         fail
     ).
+
+%%
+nvalue(N,L) => bp.nvalue(N,L).
+
+%% The following constraints are proposed and implemented by Hakan Kjellerstrand
+matrix_element(M,I,J,MIJ) =>
+    cp_check_matrix(M,NRows,NCols),
+    matrix_element(M,NRows,NCols,I,J,MIJ,cp).
+
+%
+% Scalar product of the list A and X
+%
+scalar_product(A, X, Product) => 
+    scalar_product(A, X, '#=', Product).
+
+%
+% scalar product of List A and X, with one of the relations: 
+% 
+%   #=, #<, #>, #<=, #>=, #!=
+%
+scalar_product(A, X, '#=', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #= Product.
+
+scalar_product(A, X, '#!=', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #!= Product.
+
+scalar_product(A, X, '#>=', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #>= Product.
+
+scalar_product(A, X, '#>', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #> Product.
+
+scalar_product(A, X, '#<=', Product) => 
+   check_scalars(A,X),
+    scalar_product(A, X, '#=<', Product).
+
+scalar_product(A, X, '#=<', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #=< Product.
+
+scalar_product(A, X, '#<', Product) => 
+   check_scalars(A,X),
+   sum([A[I]*X[I] : I in 1..A.length]) #< Product.
+
+%
+% Requires that all non-zero values in Xs be distinct.
+%
+all_different_except_0(Xs) =>
+    alldifferent_except_0(Xs).
+
+alldifferent_except_0(Xs) =>
+  foreach(I in 1..Xs.length, J in 1..I-1)
+     (Xs[I] #!= 0 #/\ Xs[J] #!= 0) #=> (Xs[I] #!= Xs[J])
+   end.
+
+%
+% exactly(?N,?X,?V)
+%
+% Requires that exactly N variables in X takes the value V.
+%
+exactly(N, X, V) =>
+  count(V,X,#=,N).
+
+%
+% at_most(?N,?X,?V)
+%
+% Requires that atmost N variables in X takes the value V.
+%
+at_most(N,X,V) => 
+  count(V,X,#=<,N).
+
+%
+% atleast(?N,?X,?V)
+%
+% Requires that atleast N variables in X takes the value V.
+%
+at_least(N,X,V) => 
+  count(V,X,#>=,N).
 
