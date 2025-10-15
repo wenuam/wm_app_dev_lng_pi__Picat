@@ -1,72 +1,97 @@
 module cp.
 import common_constr.
 
-% '#!='(X,Y) => X #!= Y.
-% '#/\\'(X,Y) => X #/\ Y.
-% '#\\/'(X,Y) => X #\/ Y.
-% '#\\='(X,Y) => X #!= Y.
-% '#^'(X,Y) => X #^ Y.
-% '#~'(X) => #~ X.
-% '#<'(X,Y) => X #< Y.
-% '#<=>'(X,Y) => X #<=> Y.
-% '#='(X,Y) => X #= Y. 
-% '#=<'(X,Y) => X #=< Y.
-% '#=>'(X,Y) => X #=> Y.
-% '#>'(X,Y) => X #> Y.
-% '#>='(X,Y) => X #>= Y.
-%  '::'(Vars,Domain) => '::'(Vars,Domain).
-% all_different(FDVars) => all_different(FDVars).
-% all_different_except_0(Xs) => all_different_except_0(Xs).
-% all_distinct(FDVars) => all_distinct(FDVars).
-% assignment(FDVars1,FDVars2) => assignment(FDVars1,FDVars2).
-% at_most(N,X,V) => at_most(N,X,V).
-% at_least(N,X,V) => at_least(N,X,V).
-% circuit(FDVars) => circuit(FDVars).
-% count(V,FDVars,Rel,N) => count(V,FDVars,Rel,N).
-% cumulative(Starts,Durations,Resources,Limit) => cumulative(Starts,Durations,Resources,Limit).
-% decreasing(FDVars) => decreasing(FDVars).
-% decreasing_strict(FDVars) => decreasing_strict(FDVars).
-% diffn(RectangleList) => diffn(RectangleList).
-% disjunctive_tasks(Tasks) => disjunctive_tasks(Tasks).
-% element(I,Terms,V) => element(I,Terms,V).
-% exactly(N, X, V) => exactly(N, X, V).
-% fd_degree(FDVar) = fd_degree(FDVar).
-% fd_disjoint(DVar1,DVar2) => fd_disjoint(DVar1,DVar2).
-% fd_dom(FDVar) = fd_dom(FDVar).
-% fd_false(FDVar,Elm) => fd_false(FDVar,Elm).
-% fd_max(FDVar) = fd_max(FDVar).
-% fd_min(FDVar) = fd_min(FDVar).
-% fd_min_max(FDVar,Min,Max) => fd_min_max(FDVar,Min,Max).
-% fd_next(FDVar,Elm) = fd_next(FDVar,Elm).
-% fd_prev(FDVar,Elm) = fd_prev(FDVar,Elm).
-% fd_set_false(FDVar,Elm) => fd_set_false(FDVar,Elm).
-% fd_size(FDVar) = fd_size(FDVar).
-% fd_true(FDVar,Elm) => fd_true(FDVar,Elm).
-% fd_vector_min_max(Min,Max) => fd_vector_min_max(Min,Max).
-% global_cardinality(FDVars,Pairs) => global_cardinality(FDVars,Pairs).
-% increasing(FDVars) => increasing(FDVars).
-% increasing_strict(FDVars) => increasing_strict(FDVars).
-% indomain(Var) => indomain(Var).
-% indomain_down(Var) => indomain_down(Var).
-% lex_le(L1,L2) = > lex_le(L1,L2).
-% lex_lt(L1,L2) = > lex_lt(L1,L2).
-% matrix_element(M,I,J,MIJ) => matrix_element(M,I,J,MIJ).
-% neqs(Neqs) => neqs(Neqs).
-% new_dvar() = new_dvar().
-% new_fd_var() = new_fd_var().
-% notin(VarOrVars,D) => notin(VarOrVars,D).
-% nvalue(N,L) => nvalue(N,L).
-% regular(X, Q, S, D, Q0, Fs) => regular(X, Q, S, D, Q0, Fs).
-% scalar_product(A, X, Product) => scalar_product(A, X, Product).
-% serialized(Starts,Durations) => serialized(Starts,Durations).
-% solve(Options,Vars) => solve(Options,Vars)
-% solve(Vars) => solve(Vars).
-% solve_all(Options,Vars) = solve_all(Options,Vars).
-% solve_all(Vars) = solve_all(Vars).
-% solve_suspended => solve_suspended.
-% subcircuit(FDVars) => subcircuit(FDVars).
-% table_in(Vars, Tuples) => table_in(Vars, Tuples).
-% table_notin(Vars, Tuples) => table_notin(Vars, Tuples).
+% X #!= Y
+% X #/\ Y
+% X #< Y
+% X #<= Y
+% X #<=> Y
+% X #= Y
+% X #=< Y
+% X #=> Y
+% X #> Y
+% X #>= Y
+% X #\/ Y
+% X #^ Y
+%  #~ X
+% Vars::Exp
+% Vars notin Exp
+% acyclic(Vs,Es)
+% acyclic_d(Vs,Es)
+% all_different(FDVars)
+% all_different_except_0(FDVars)
+% all_distinct(FDVars)
+% assignment(FDVars1,FDVars2)
+% at_least(N,L,V)
+% at_most(N,L,V)
+% circuit(FDVars)
+% count(V,FDVars,N)
+% count(V,FDVars,Rel,N)
+% cumulative(Ss,Ds,Rs,Limit)
+% decreasing(L)
+% decreasing_strict(L)
+% diffn(RectangleList)
+% disjunctive_tasks(Tasks)(cp only)
+% element(I,List,V)
+% element0(I,List,V)
+% exactly(N,L,V):
+% fd_degree(FDVar)=Degree(cp only)
+% fd_disjoint(DVar1,DVar2)
+% fd_dom(FDVar) = List
+% fd_false(FDVar,Elm)
+% fd_max(FDVar) = Max
+% fd_min(FDVar) = Min
+% fd_min_max(FDVar,Min,Max)
+% fd_next(FDVar,Elm) = NextElm
+% fd_prev(FDVar,Elm) = PrevElm
+% fd_set_false(FDVar,Elm)(cp only)
+% fd_size(FDVar) = Size
+% fd_true(FDVar,Elm)
+% fd_vector_min_max(Min,Max)
+% global_cardinality(List,Pairs)
+% hcp(Vs,Es)
+% hcp(Vs,Es,K)
+% hcp_grid(A)
+% hcp_grid(A,Es)
+% hcp_grid(A,Es,K)
+% increasing(L)
+% increasing_strict(L)
+% indomain(Var)(nondet)(cp only)
+% indomain_down(Var)(nondet)(cp only)
+% lex_le(L_1,L_2)
+% lex_lt(L_1,L_2)
+% matrix_element(Matrix,I,J,V)
+% matrix_element0(Matrix,I,J,V)
+% neqs(NeqList)(cp only)
+% new_dvar() = FDVar
+% new_fd_var() = FDVar
+% path(Vs,Es,Src,Dest)
+% path_d(Vs,Es,Src,Dest)
+% regular(X,Q,S,D,Q0,F)
+% scalar_product(A,X,Product)
+% scalar_product(A,X,Rel,Product)
+% scc(Vs,Es)
+% scc(Vs,Es,K)
+% scc_d(Vs,Es)
+% scc_d(Vs,Es,K)
+% scc_grid(A)
+% scc_grid(A,K)
+% serialized(Starts,Durations)
+% solve(Opts,Vars)(nondet)
+% solve(Vars)(nondet)
+% solve_all(Opts,Vars) = List
+% solve_all(Vars) = List
+% solve_suspended(Opt)(cp only)
+% solve_suspended(cp only)
+% subcircuit(FDVars)
+% subcircuit_grid(A)
+% subcircuit_grid(A,K)
+% table_in(DVars,R)
+% table_notin(DVars,R)
+% tree(Vs,Es)
+% tree(Vs,Es,K)
+
+include "cp_sat_mip_smt.pi". % common built-ins for cp, sat, mip, and smt
 
 '::'(Vars,Domain) =>
     bp.'_$_picat_in'(cp,Vars,Domain).
@@ -113,7 +138,7 @@ import common_constr.
 % solve(Vars) => solve(Vars).
 solve(Vars) => 
     (bp.dvar_or_int_list(Vars) -> VList = Vars; vars(Vars) = VList),
-    bp.labeling([],VList).    
+    bp.labeling([],VList).
 
 % solve(Options,Vars) => solve(Options,Vars)
 solve(Options,Vars) =>
@@ -136,7 +161,7 @@ solve(Options,Vars) =>
         Options2 = Options1,
         MetaCalls1 = MetaCalls
     ),
-    bp.labeling(MetaCalls1 ++ Options2,VList).    
+    bp.labeling(MetaCalls1 ++ Options2,VList).
 
 % solve_all(Vars) = solve_all(Vars).
 solve_all(Vars) =
@@ -147,12 +172,31 @@ solve_all(Options,Vars) =
     findall(Vars, solve(Options,Vars)).
 
 % solve_suspended => solve_suspended.
-solve_suspended => solve_suspended([]).
+solve_suspended =>
+    bp.frozen(FL),
+    FVars = [FVar : FVar in vars(FL), dvar(FVar)],
+    bp.labeling([],FVars).
 
 solve_suspended(Options) =>
     bp.frozen(FL),
     FVars = [FVar : FVar in vars(FL), dvar(FVar)],
-    solve(Options,FVars).
+    bp.labeling(Options,FVars).
+
+% fd_degree(FDVar) = fd_degree(FDVar).
+fd_degree(FDVar) = Degree, dvar(FDVar) => bp.fd_degree(FDVar,Degree).
+fd_degree(FDVar) = Degree, integer(FDVar) => Degree = 0.
+fd_degree(FDVar) = _Degree => handle_exception($dvar_expected(FDVar), fd_degree).
+    
+% fd_set_false(FDVar,Elm) => fd_set_false(FDVar,Elm).
+fd_set_false(FDVar,Elm), dvar_or_int(FDVar), integer(Elm) => 
+    bp.domain_set_false(FDVar,Elm).
+fd_set_false(FDVar,Elm) =>
+    Source = fd_set_false,
+    (integer(Elm) ->
+        handle_exception($dvar_expected(FDVar), Source)
+    ;
+        handle_exception($integer_expected(Elm), Source)
+    ).
 
 % all_different(FDVars) => all_different(FDVars).
 all_different(FDVars) =>
@@ -174,16 +218,6 @@ assignment(FDVars1,FDVars2) =>
 circuit(FDVars) =>
     (array(FDVars) -> to_list(FDVars) = List; List = FDVars),
     bp.circuit(List).
-
-% count(V,FDVars,Rel,N) => count(V,FDVars,Rel,N).
-count(V,FDVars,'#!=',N) =>
-    count(V,FDVars,'#\\=',N).
-count(V,FDVars,Rel,N) =>
-    (array(FDVars) -> to_list(FDVars) = List; List = FDVars),
-    bp.count(V,List,Rel,N).
-
-count(V,FDVars,N) =>
-    count(V,FDVars,'#=',N).
 
 % cumulative(Starts,Durations,Resources,Limit) => cumulative(Starts,Durations,Resources,Limit).
 cumulative(Starts,Durations,Resources,Limit) =>
@@ -215,28 +249,7 @@ element0(I,FDVars,V) =>
     (bp.dvar_or_int_list(List) -> true; handle_exception($dvar_or_int_list_expected(List), element)),
     bp.element0(I,List,V).
 
-% fd_degree(FDVar) = fd_degree(FDVar).
-fd_degree(FDVar) = Degree, dvar(FDVar) => bp.fd_degree(FDVar,Degree).
-fd_degree(FDVar) = Degree, integer(FDVar) => Degree = 0.
-fd_degree(FDVar) = _Degree => handle_exception($dvar_expected(FDVar), fd_degree).
-    
-% fd_disjoint(DVar1,DVar2) => fd_disjoint(DVar1,DVar2).
-fd_disjoint(DVar1,DVar2), dvar_or_int(DVar1), dvar_or_int(DVar2) => bp.b_DM_DISJOINT_cc(DVar1,DVar2).
-fd_disjoint(DVar1,DVar2) =>
-    Source = fd_disjoint,
-    (dvar_or_int(DVar1) -> handle_exception($dvar_expected(DVar2), Source); handle_exception($dvar_expected(DVar1), Source)).
-
 % fd_set_false(FDVar,Elm) => fd_set_false(FDVar,Elm).
-fd_set_false(FDVar,Elm), dvar_or_int(FDVar), integer(Elm) => 
-    bp.domain_set_false(FDVar,Elm).
-fd_set_false(FDVar,Elm) =>
-    Source = fd_set_false,
-    (integer(Elm) ->
-        handle_exception($dvar_expected(FDVar), Source)
-    ;
-        handle_exception($integer_expected(Elm), Source)
-    ).
-
 % global_cardinality(FDVars,Pairs) => global_cardinality(FDVars,Pairs).
 global_cardinality(List,Pairs) =>
     (bp.check_pairs(Pairs) -> true; handle_exception($pairs_expected(Pairs), global_cardinality)),
@@ -275,13 +288,6 @@ subcircuit(FDVars) =>
     bp.subcircuit(List).   
 
 %%%%%%%%%%%%%%%%%%%%%%%% common to cp and sat modules %%%%%%%%%%%%%%%%%%%%%%
-% new_fd_var() = new_fd_var().
-new_fd_var() = FDVar =>
-    bp.fd_new_var(FDVar).
-
-new_dvar() = FDVar =>
-    bp.fd_new_var(FDVar).
-
 %%
 table_in(Vars,Tuples) =>
     bp.table_in(Vars,Tuples).
@@ -293,71 +299,6 @@ notin(Vars,Domain) =>
 %%
 table_notin(Vars,Tuples) =>
     bp.table_notin(Vars,Tuples).
-
-% fd_dom(FDVar) = fd_dom(FDVar).
-fd_dom(FDVar) = List, integer(FDVar) => List = [FDVar].
-fd_dom(FDVar) = List, dvar(FDVar) => bp.domain_min_max(FDVar,Min,Max), bp.fd_domain(FDVar,List,Min,Max).
-fd_dom(FDVar) = _List => 
-    handle_exception($dvar_expected(FDVar), fd_dom).
-
-% fd_false(FDVar,Elm) => fd_false(FDVar,Elm).
-fd_false(FDVar,Elm),
-    dvar_or_int(FDVar),
-    integer(Elm)
- =>
-    bp.b_DM_FALSE_cc(FDVar,Elm).
-fd_false(FDVar,Elm) =>
-    bp.expect_dvar_int(FDVar,Elm,fd_false).
-
-% fd_max(FDVar) = fd_max(FDVar).
-fd_max(VarOrVars) = Max =>
-    bp.fd_min_max(VarOrVars,_,Max).
-
-% fd_min(FDVar) = fd_min(FDVar).
-fd_min(VarOrVars) = Min =>
-    bp.fd_min_max(VarOrVars,Min,_).    
-
-% fd_min_max(FDVar,Min,Max) => fd_min_max(FDVar,Min,Max).
-fd_min_max(VarOrVars,Min,Max) =>
-    bp.fd_min_max(VarOrVars,Min,Max).
-
-% fd_next(FDVar,Elm) = fd_next(FDVar,Elm).
-fd_next(FDVar,Elm) = NextElm, 
-    dvar(FDVar), integer(Elm) 
- =>
-    (bp.domain_next_inst(FDVar,Elm, NextElm) -> true; handle_exception(failed,fd_next)).
-fd_next(FDVar,Elm) = _NextElm =>
-    bp.expect_dvar_int(FDVar,Elm,fd_next).
-
-% fd_prev(FDVar,Elm) = fd_prev(FDVar,Elm).
-fd_prev(FDVar,Elm) = PrevElm,
-    dvar(FDVar), integer(Elm) 
- =>
-    (bp.b_DM_PREV_ccf(FDVar,Elm, PrevElm) -> true; handle_exception(failed,fd_prev)).
-fd_prev(FDVar,Elm) = _PrevElm =>
-    bp.expect_dvar_int(FDVar,Elm,fd_prev).
-
-% fd_size(FDVar) = fd_size(FDVar).
-fd_size(FDVar) = Size =>
-    (dvar(FDVar) -> 
-    bp.b_DM_COUNT_cf(FDVar,Size)
-    ; integer(FDVar) ->
-        Size = 1
-    ;
-        handle_exception($dvar_expected(FDVar), fd_size)
-    ).
-    
-% fd_true(FDVar,Elm) => fd_true(FDVar,Elm).
-fd_true(FDVar,Elm),
-    dvar_or_int(FDVar),
-    integer(Elm)
- =>
-    bp.b_DM_TRUE_cc(FDVar,Elm).
-fd_true(FDVar,Elm) =>
-    bp.expect_dvar_int(FDVar,Elm,fd_true).
-
-fd_vector_min_max(Min,Max) =>
-    bp.fd_vector_min_max(Min,Max).
 
 /************************************************************************* 
     regular(L,Q,S,M,Q0,Fs)
@@ -520,45 +461,6 @@ matrix_element(M,I,J,MIJ) =>
     matrix_element(M,NRows,NCols,I,J,MIJ,cp).
 
 %
-% Scalar product of the list A and X
-%
-scalar_product(A, X, Product) => 
-    scalar_product(A, X, '#=', Product).
-
-%
-% scalar product of List A and X, with one of the relations: 
-% 
-%   #=, #<, #>, #<=, #>=, #!=
-%
-scalar_product(A, X, '#=', Product) => 
-   check_scalars(A,X),
-   sum([A[I]*X[I] : I in 1..A.length]) #= Product.
-
-scalar_product(A, X, '#!=', Product) => 
-   check_scalars(A,X),
-   sum([A[I]*X[I] : I in 1..A.length]) #!= Product.
-
-scalar_product(A, X, '#>=', Product) => 
-   check_scalars(A,X),
-   sum([A[I]*X[I] : I in 1..A.length]) #>= Product.
-
-scalar_product(A, X, '#>', Product) => 
-   check_scalars(A,X),
-   sum([A[I]*X[I] : I in 1..A.length]) #> Product.
-
-scalar_product(A, X, '#<=', Product) => 
-   check_scalars(A,X),
-    scalar_product(A, X, '#=<', Product).
-
-scalar_product(A, X, '#=<', Product) => 
-   check_scalars(A,X),
-   sum([A[I]*X[I] : I in 1..A.length]) #=< Product.
-
-scalar_product(A, X, '#<', Product) => 
-   check_scalars(A,X),
-   sum([A[I]*X[I] : I in 1..A.length]) #< Product.
-
-%
 % Requires that all non-zero values in Xs are distinct.
 %
 alldifferent_except_0(Xs) =>
@@ -580,84 +482,3 @@ all_different_except_0_aux(Xs) =>
         Xs[I] #= 0 #\/ Xs[J] #= 0 #\/ Xs[I] #!= Xs[J]
     end.
 
-%
-% exactly(?N,?X,?V)
-%
-% Requires that exactly N variables in X take the value V.
-%
-exactly(N, X, V) =>
-  count(V,X, #= ,N).
-
-%
-% at_most(?N,?X,?V)
-%
-% Requires that atmost N variables in X take the value V.
-%
-at_most(N,X,V) => 
-  count(V,X, #=< ,N).
-
-%
-% atleast(?N,?X,?V)
-%
-% Requires that atleast N variables in X take the value V.
-%
-at_least(N,X,V) => 
-  count(V,X, #>= ,N).
-
-%
-% Ensure that List is increasing
-%
-increasing(FDVars), array(FDVars) =>
-   foreach(I in 2..length(FDVars)) FDVars[I-1] #=< FDVars[I] end.
-increasing(FDVars), list(FDVars) =>
-   increasing_list(FDVars).
-increasing(FDVars) =>
-   handle_exception($list_or_array_expected(FDVars), increasing).
-
-increasing_list([]) => true.
-increasing_list([_]) => true.
-increasing_list([X|T@[Y|_]]) => 
-    X #=< Y,
-    increasing_list(T).
-
-increasing_strict(FDVars), array(FDVars) =>
-   foreach(I in 2..length(FDVars)) FDVars[I-1] #< FDVars[I] end.
-increasing_strict(FDVars), list(FDVars) =>
-   increasing_strict_list(FDVars).
-increasing_strict(FDVars) =>
-   handle_exception($list_or_array_expected(FDVars), increasing_strict).
-
-increasing_strict_list([]) => true.
-increasing_strict_list([_]) => true.
-increasing_strict_list([X|T@[Y|_]]) => 
-    X #< Y,
-    increasing_strict_list(T).
-
-%
-% Ensure that FDVars is decreasing
-%
-decreasing(FDVars), array(FDVars) =>
-   foreach(I in 2..length(FDVars)) FDVars[I-1] #>= FDVars[I] end.
-decreasing(FDVars), list(FDVars) =>
-   decreasing_list(FDVars).
-decreasing(FDVars) =>
-   handle_exception($list_or_array_expected(FDVars), decreasing).
-
-decreasing_list([]) => true.
-decreasing_list([_]) => true.
-decreasing_list([X|T@[Y|_]]) => 
-    X #>= Y,
-    decreasing_list(T).
-
-decreasing_strict(FDVars), array(FDVars) =>
-   foreach(I in 2..length(FDVars)) FDVars[I-1] #> FDVars[I] end.
-decreasing_strict(FDVars), list(FDVars) =>
-   decreasing_strict_list(FDVars).
-decreasing_strict(FDVars) =>
-   handle_exception($list_or_array_expected(FDVars), decreasing_strict).
-
-decreasing_strict_list([]) => true.
-decreasing_strict_list([_]) => true.
-decreasing_strict_list([X|T@[Y|_]]) => 
-    X #> Y,
-    decreasing_strict_list(T).

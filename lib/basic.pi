@@ -87,6 +87,7 @@ compare_terms(Term1, Term2) = compare_terms(Term1,Term2).
 compound(Term) => compound(Term).
 copy_term(Term) = copy_term(Term).
 copy_term_shallow(Term) = copy_term_shallow(Term).
+del(Map,Key) => del(Map,Key).
 delete(List, X) = delete(List,X).
 delete_all(List, X) = delete_all(List,X).
 different_terms(Term1, Term2) => different_terms(Term1,Term2).

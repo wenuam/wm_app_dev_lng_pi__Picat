@@ -434,6 +434,22 @@ smt_dump_constr(OStream,'$mul_constr'(X,Y,Z)) =>
     print(OStream," "),
     smt_dump_operand(OStream,Y),
     println(OStream,")))").
+smt_dump_constr(OStream,'$div_constr'(X,Y,Q,R,_FConstrs)) =>
+    print(OStream, "(assert (= "),
+    smt_dump_operand(OStream,Q),
+    print(OStream, " (div "),
+    smt_dump_operand(OStream,X),
+    print(OStream," "),
+    smt_dump_operand(OStream,Y),
+    println(OStream,")))").
+smt_dump_constr(OStream,'$mod_constr'(X,Y,Q,R,_FConstrs)) =>
+    print(OStream, "(assert (= "),
+    smt_dump_operand(OStream,R),
+    print(OStream, " (mod "),
+    smt_dump_operand(OStream,X),
+    print(OStream," "),
+    smt_dump_operand(OStream,Y),
+    println(OStream,")))").
 smt_dump_constr(OStream,'$table_in'(VarsTuple,Tuples)) =>
     smt_dump_table_in_constr(OStream,VarsTuple,Tuples).
 smt_dump_constr(OStream,'$table_notin'(VarsTuple,Tuples)) =>

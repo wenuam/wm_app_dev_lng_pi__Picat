@@ -14,9 +14,11 @@ mip_solve(Options,Vars) =>
     ;
         Sense = 0, ObjExp = 0
     ),
-    mip_solve_aux(Cmd,ObjExp,Sense,Vars).
+    Vars1 = vars((ObjExp,Vars)),
+    mip_solve_aux(Cmd,ObjExp,Sense,Vars1).
 
 %%
+check_mip_solver(scip) => true. % assume that scip is statically linked
 check_mip_solver(cbc) =>
     (check_command("cbc") ->
         true
@@ -36,7 +38,9 @@ check_mip_solver(glpk) =>
         handle_exception($existence_error(glpsol), solve)
     ).
 check_mip_solver(Solver) =>
-    (check_command("gurobi_cl") ->
+    (bp.c_CURRENT_PREDICATE(c_scip_init,3) ->
+        Solver = scip
+    ;check_command("gurobi_cl") ->
         Solver = gurobi
     ; check_command("cbc") ->
         Solver = cbc
@@ -68,22 +72,9 @@ check_command(Command) =>
     Res == 0.    % 0 means that the command exists
     
 proc_mip_solve_options([],_Cmd, Obj) => (var(Obj) -> Obj = 0; true).
-proc_mip_solve_options([gurobi|Options],Cmd,Obj) =>
+proc_mip_solve_options([SolverName|Options],Cmd,Obj), supported_mip_solver(SolverName) =>
     Cmd = $solve(Solver,_TmpFile,_Fmt),
-    (var(Solver) -> Solver = gurobi; handle_exception($multiple_mip_solvers(gurobi,Solver), solve)),
-    proc_mip_solve_options(Options,Cmd,Obj).
-proc_mip_solve_options([cbc|Options],Cmd,Obj) =>
-    Cmd = $solve(Solver,_TmpFile,_Fmt),
-    (var(Solver) -> Solver = cbc; handle_exception($multiple_mip_solvers(cbc,Solver), solve)),
-    proc_mip_solve_options(Options,Cmd,Obj).
-proc_mip_solve_options([opb|Options],Cmd,Obj) =>
-    Cmd = $solve(Solver,_TmpFile,Fmt),
-    (var(Solver) -> Solver = dump; true),
-    (var(Fmt) -> Fmt = opb; true),
-    proc_mip_solve_options(Options,Cmd,Obj).    
-proc_mip_solve_options([glpk|Options],Cmd,Obj) =>
-    Cmd = $solve(Solver,_TmpFile,_Fmt),
-    (var(Solver) -> Solver = glpk; handle_exception($multiple_mip_solvers(glpk,Solver), solve)),
+    (var(Solver) -> Solver = SolverName; handle_exception($multiple_mip_solvers(SolverName,Solver), solve)),
     proc_mip_solve_options(Options,Cmd,Obj).
 proc_mip_solve_options([dump(File)|Options],Cmd,Obj) =>
     Cmd = $solve(Type,TmpFile,_Fmt),
@@ -105,7 +96,7 @@ proc_mip_solve_options([tmp(File)|Options],Cmd,Obj) =>
     (TmpFile = File -> true; handle_exception($multiple_tmp_files(TmpFile,File), solve)),
     proc_mip_solve_options(Options,Cmd,Obj).
 proc_mip_solve_options([limit(N)|Options],Cmd,Obj) =>
-    (integer(N) -> bp.global_set('$n_backtracks',1, N); handle_exception(integer_expected(N), limit)),
+    (integer(N) -> bp.global_set('$n_backtracks',1, N); handle_exception($integer_expected(N), limit)),
     proc_mip_solve_options(Options,Cmd,Obj).
 proc_mip_solve_options([Option|Options],Cmd,Obj) =>
     bp.picat_warning($unsupported_option(Option), solve),
@@ -113,16 +104,25 @@ proc_mip_solve_options([Option|Options],Cmd,Obj) =>
 proc_mip_solve_options(Options,Cmd,Obj) =>
     handle_exception($list_expected(Options), solve).
 
+supported_mip_solver(gurobi) => true.
+supported_mip_solver(cbc) => true.
+supported_mip_solver(glpk) => true.
+supported_mip_solver(scip) => true.
+
 mip_solve_aux(solve(Solver,TmpFile,Fmt), ObjExp,Sense,Vars), Solver == dump =>
     bp.trans_mip_constrs(Vars,ObjExp,ObjTerms,AllVars,Constrs),
     (var(TmpFile) -> TmpStream = stdout; TmpStream = open(TmpFile,write)),
     (nonvar(Fmt) -> true; Fmt = lp),
     not not mip_dump(TmpStream,Fmt,Sense,ObjTerms,AllVars,Constrs),
     close(TmpStream).
-mip_solve_aux(solve(Solver,TmpFile,_Fmt), ObjExp,Sense,Vars) =>    % Solver = gurobi, cbc, or glpk
-    mip_check_file(TmpFile,"__tmp.lp",TmpFileStr),
-    (append(MainName,".lp", TmpFileStr) -> true; handle_exception($extension_name_expected(".lp"), solve)),
-    SolFileStr = MainName ++ ".sol",
+mip_solve_aux(solve(Solver,TmpFile,_Fmt), ObjExp,Sense,Vars) =>    % Solver = gurobi, cbc, scip, or glpk
+    (Solver == scip ->
+        true
+    ;
+        mip_check_file(TmpFile,"__tmp.lp",TmpFileStr),
+        (append(MainName,".lp", TmpFileStr) -> true; handle_exception($extension_name_expected(".lp"), solve)),
+        SolFileStr = MainName ++ ".sol"
+    ),
     bp.abolish(mip_last_solution,1),
     (ObjExp == 0, Vars !== [], bp.dvar_or_int_list(Vars) ->
         VarsArr = to_array(Vars),
@@ -155,6 +155,10 @@ mip_solve_repeat_with_limit(Solver,TmpFileStr,SolFileStr,ObjExp,Sense,Vars,VarsA
     Limit1 is Limit-1,
     mip_solve_repeat_with_limit(Solver,TmpFileStr,SolFileStr,ObjExp,Sense,Vars,VarsArr,[Tuple|Table],Limit1).
 
+mip_call_mip(scip,TmpFileStr,SolFileStr,ObjExp,Sense,Vars) =>
+    bp.trans_mip_constrs(Vars,ObjExp,ObjTerms,AllVars,Constrs),
+%    writeln($mip_solve_with_scip(Vars,Sense,ObjTerms,AllVars,Constrs)),
+    mip_solve_with_scip(Vars,Sense,ObjTerms,AllVars,Constrs).
 mip_call_mip(Solver,TmpFileStr,SolFileStr,ObjExp,Sense,Vars) =>
     bp.trans_mip_constrs(Vars,ObjExp,ObjTerms,AllVars,Constrs),
     TmpStream = open(TmpFileStr,write),
@@ -173,7 +177,7 @@ mip_create_command(cbc,TmpFileStr,SolFileStr,Command) =>
 mip_create_command(gurobi,TmpFileStr,SolFileStr,Command) =>    
     Command = "gurobi_cl ResultFile=" ++ SolFileStr ++ [' '|TmpFileStr].
 mip_create_command(glpk,TmpFileStr,SolFileStr,Command) =>
-    Command = "glpsol --lp -o " ++ SolFileStr ++ [' '|TmpFileStr].
+    Command = "glpsol --cpxlp -o " ++ SolFileStr ++ [' '|TmpFileStr].
 
 mip_retrive_res(Solver,SolFileStr,Vars),
     bp.b_ACCESS_ccf(SolFileStr,0,0)
@@ -545,3 +549,82 @@ mip_bind_var(Var,Val), dvar(Var) =>
     ).
 mip_bind_var(Var,Val) =>
     Var = Val.
+
+mip_solve_with_scip(Vars,Sense,ObjTerms,[],Constrs) => true.
+mip_solve_with_scip(Vars,Sense,ObjTerms,AllVars,Constrs) =>
+    mip_max_col_num(AllVars,0,MaxColNum),
+    NumOfConstrs = length(Constrs),
+    bp.c_scip_init(MaxColNum,NumOfConstrs,Sense),
+    scip_proc_obj_terms(ObjTerms),
+    scip_post_vars(AllVars),
+    scip_post_constrs(Constrs,0),
+    Sol = new_array(MaxColNum),
+    if bp.c_scip_solve(Sol) then
+        scip_return_binding(Vars,Sol),
+        bp.c_scip_release()
+    else
+        bp.c_scip_release(),
+    	fail
+    end.
+
+mip_max_col_num([],MaxColNum0,MaxColNum) => MaxColNum is MaxColNum0+1.
+mip_max_col_num([Var|Vars],MaxColNum0,MaxColNum),
+    var(Var),
+    bp.get_attr(Var,'$lp',T),
+    T = $'$lp_x'(ColNo,_IsInt,_Low,_Up,_)
+=>
+    mip_max_col_num(Vars,max(ColNo,MaxColNum0),MaxColNum).
+mip_max_col_num([_|Vars],MaxColNum0,MaxColNum) =>
+    mip_max_col_num(Vars,MaxColNum0,MaxColNum).
+
+scip_proc_obj_terms([]) => true.
+scip_proc_obj_terms([(Coe,Var)|ObjTerms]),var(Var) =>
+    bp.put_attr(Var,'$obj_coe',Coe),
+    scip_proc_obj_terms(ObjTerms).
+scip_proc_obj_terms([_|ObjTerms]) =>
+    scip_proc_obj_terms(ObjTerms).
+
+scip_post_vars([]) => true.
+scip_post_vars([Var|Vars]), var(Var) =>
+    bp.get_attr(Var,'$lp',T),
+    T = $'$lp_x'(ColNo,_IsInt,LB,UB,_),
+    (bp.get_attr(Var,'$obj_coe',ObjCoe) -> true; ObjCoe = 0),
+    (dvar(Var) -> VarType = 0; VarType = 1),
+    bp.c_scip_post_var(ColNo,VarType,LB,UB,ObjCoe),
+    scip_post_vars(Vars).
+scip_post_vars([_|Vars]) =>
+    scip_post_vars(Vars).
+
+/*
+scip_post_constrs([Constr|Constrs],ConstrNum) ?=>
+    println($scip_post_constr(Constr)),
+    fail.
+*/    
+scip_post_constrs([],_) => true.
+scip_post_constrs(['$lp_c'(_,CoeCls,Const,ConstrType)|Constrs],ConstrNum) =>
+    MConst is -Const,
+    (ConstrType == 0 ->
+        LB = MConst, UB = MConst
+    ;
+        LB = MConst, UB = maxint_small()
+    ),    
+    bp.c_scip_create_constr(ConstrNum,LB,UB),
+    scip_post_constr_coes(CoeCls,ConstrNum),
+    scip_post_constrs(Constrs,ConstrNum+1).
+
+scip_post_constr_coes([],_ConstrNum) => true.
+scip_post_constr_coes([(Coe,ColNo)|CoeCls],ConstrNum) =>
+    bp.c_scip_add_constr_coe(Coe,ColNo,ConstrNum),
+    scip_post_constr_coes(CoeCls,ConstrNum).
+
+scip_return_binding([],Sol) => true.
+scip_return_binding([Var|Vars],Sol), var(Var) =>
+    bp.get_attr(Var,'$lp',T),
+    T = $'$lp_x'(ColNo,_IsInt,_Low,_Up,_),
+    arg(ColNo+1, Sol, Var),
+    scip_return_binding(Vars,Sol).
+scip_return_binding([_|Vars],Sol) =>
+    scip_return_binding(Vars,Sol).
+    
+     
+    
