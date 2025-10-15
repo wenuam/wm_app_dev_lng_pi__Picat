@@ -28,49 +28,51 @@ magnitude fewer lines of code to describe than Prolog and
 Picat can be significantly faster than Prolog because
 pattern-matching facilitates indexing of rules. 
 
-The Picat implementation is based on the B-Prolog engine.
 The Picat system is written in both C and Picat. The
-package has the following directories of files:
+package has the following folders and files:
 
- Picat/README      --       this file
- Picat/picat       --       the executable for Linux
- Picat/picat.exe   --       the executable for Windows
- Picat/doc         --       documentation
- Picat/lib         --       library modules 
-   basic.pi 
-   cp.pi 
-   io.pi 
-   math.pi 
-   os.pi 
-   planner.pi 
-   sat.pi
-   sys.pi
-   util.pi 
+ Picat/README  --   this file
+ Picat/picat   --   the executable (picat.exe for Windows)
+ Picat/doc     --   documentation
+ Picat/exs     --   program examples
+ Picat/emu     --   the C source code of the engine
+ Picat/lib     --   library modules 
 
-Each library file gives the set of functions, predicates,
-and constraints provided by the module. The library modules
-are included in the executable and no setting of the
-environment variable PICATPATH is required. The modules
-"basic.pi", "io.pi", "math.pi", and "sys.pi" are imported
-by default, and the symbols defined in these modules are
-directly available to applications. The modules "cp.pi",
-"os.pi", "planner.pi", "sat.pi" and "util.pi" are not
-imported by default. Applications need to import them in
-order to access the functions, predicates, and constraints
-defined in the modules.
+The folder "Picat/emu" contains the C source code needed to
+make Picat's standalone executable. It also contains the C
+source code of Espresso, GLPK, and Lingeling, which are used
+by Picat. This folder also contains make files for different
+platforms.
+
+The folder "Picat/lib" contains library modules. There are
+three types of library modules:
+
+pre-loaded and pre-imported: 
+---------------------------
+The symbols defined in this type of modules are directly
+available to applications, and it's unnecessary to import
+them. This type includes: "basic.pi", "io.pi", "math.pi",
+and "sys.pi".
+
+pre-loaded but not pre-imported: 
+-------------------------------
+These modules are included in the executable. However,
+applications need to import them in order to access the
+functions, predicates, and constraints defined in the
+modules. No setting of the environment variable PICATPATH is
+required. This type includes: "cp.pi", "mip.pi", "os.pi",
+"planner.pi", "sat.pi", and "util.pi".
+
+not pre-loaded, and not pre-imported: 
+------------------------------------
+These modules, which are mainly developed by third parties,
+are not included in the executable. In order to import any
+of these modules, applications must set the environment
+variable PICATPATH to include the folder, in which the module
+resides.
 
 This Picat system is distributed under the Mozilla Public
 License (http://mozilla.org/MPL/2.0/). The Picat system is
 provided free of charge for any fair application, including
-commercial applications. The C source code is available to
-registered users. Interested users can register at:
-
-http://picat-lang.org/download.html
-
-The folder "Picat/emu" contains the C source code needed to
-make Picat's standalone executable. It also contains the C
-source code of the MiniSAT and Lingeling SAT solvers. For
-Windows, MiniSAT should be used since Lingeling only
-compiles with GCC. This folder also contains make files for
-different platforms.
+commercial applications. 
 
