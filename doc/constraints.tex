@@ -85,7 +85,7 @@ The following built-ins are provided for domain variables.
 \item \texttt{fd\_set\_false($FDVar$, $Elm$)}\index{\texttt{fd\_set\_false/2}}: This predicate excludes the element $Elm$ from the domain of $FDVar$. If this operation results in a hole in the domain, then the domain changes from an interval representation into a bit-vector representation, no matter how big the domain is. This built-in is only provided by {\tt cp}.
 \item \texttt{fd\_size($FDVar$) = $Size$}\index{\texttt{fd\_size/1}}: This function returns the size of the domain of $FDVar$,  where $FDVar$ is an integer-domain variable.
 \item \texttt{fd\_true($FDVar$, $Elm$)}\index{\texttt{fd\_true/2}}: This predicate is true if the integer $Elm$ is an element in the domain of $FDVar$.
-\item \texttt{new\_dvar() = $FDVar$}\index{\texttt{new\_dvar/0}}: This function creates a new domain variable with the default domain, which has the bounds \texttt{-72057594037927935..72057594037927935} on 64-bit computers and \texttt{-268435455..268435455} on 32-bit computers.
+\item \texttt{new\_dvar() = $FDVar$}\index{\texttt{new\_dvar/0}}: This function creates a new domain variable with the default domain, which has the bounds \texttt{-72057594037927935..72057594037927935} on 64-bit computers and \texttt{-268435455..268435455} on 32-bit computers.\footnote{Note that incorrect results may be caused by overflows or underflows.}
 \end{itemize}
 
 \section{Table constraints}

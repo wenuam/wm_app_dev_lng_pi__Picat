@@ -581,7 +581,7 @@ January 14, 2013 \\
 \item \texttt{neqs($NeqList$)} (cp only)
 \item \texttt{new\_dvar() = $FDVar$}
 \item \texttt{new\_fd\_var() = $FDVar$}
-\item \texttt{regular$(X, Q, S, D, Q0, F)$}
+\item \texttt{regular$(X,Q,S,D,Q0,F)$}
 \item \texttt{scalar\_product($A$,$X$,$Product$)} 
 \item \texttt{scalar\_product($A$,$X$,$Rel$,$Product$)}
 \item \texttt{serialized($Starts$,$Durations$)}
@@ -646,20 +646,20 @@ January 14, 2013 \\
 \item \texttt{nn\_destroy\_all}
 \item \texttt{nn\_load($File$) = $NN$}
 \item \texttt{nn\_print($NN$)}
-\item \texttt{nn\_run($NN$, $Input$) = $Output$}
-\item \texttt{nn\_run($NN$, $Input$, $Opts$) = $Output$}
+\item \texttt{nn\_run($NN$,$Input$) = $Output$}
+\item \texttt{nn\_run($NN$,$Input$,$Opts$) = $Output$}
 \item \texttt{nn\_save($NN$,$File$)}
-\item \texttt{nn\_set\_activation\_function\_hidden($NN$, $Func$)}
-\item \texttt{nn\_set\_activation\_function\_layer($NN$, $Func$, $Layer$)}
-\item \texttt{nn\_set\_activation\_function\_output($NN$, $Func$)}
-\item \texttt{nn\_set\_activation\_steepness\_hidden($NN$, $Steepness$)}
-\item \texttt{nn\_set\_activation\_steepness\_layer($NN$, $Steepness$, $Layer$)}
-\item \texttt{nn\_set\_activation\_steepness\_output($NN$, $Steepness$)}
+\item \texttt{nn\_set\_activation\_function\_hidden($NN$,$Func$)}
+\item \texttt{nn\_set\_activation\_function\_layer($NN$,$Func$,$Layer$)}
+\item \texttt{nn\_set\_activation\_function\_output($NN$,$Func$)}
+\item \texttt{nn\_set\_activation\_steepness\_hidden($NN$,$Steepness$)}
+\item \texttt{nn\_set\_activation\_steepness\_layer($NN$,$Steepness$,$Layer$)}
+\item \texttt{nn\_set\_activation\_steepness\_output($NN$,$Steepness$)}
 \item \texttt{nn\_train($NN$,$Data$)}
 \item \texttt{nn\_train($NN$,$Data$,$Opts$)}
-\item \texttt{nn\_train\_data\_get($Data$, $I$) = $Pair$}
+\item \texttt{nn\_train\_data\_get($Data$,$I$) = $Pair$}
 \item \texttt{nn\_train\_data\_load($File$) = $Data$}
-\item \texttt{nn\_train\_data\_save($Data$, $File$)}
+\item \texttt{nn\_train\_data\_save($Data$,$File$)}
 \item \texttt{nn\_train\_data\_size($Data$) = $Size$}
 \end{itemize}
 \end{scriptsize}
@@ -750,7 +750,7 @@ January 14, 2013 \\
     \item \texttt{send($FD$,$Message$) = $NBytes$}
     \item \texttt{send($FD$,$Message$,$Flags$) = $NBytes$}
     \item \texttt{sendto($FD$,$Message$,$Domain$,$Address$,$Port$) = $NBytes$}
-    \item \texttt{sendto($FD$,$Message$,$Flags$, \\        $Domain$,$Address$,$Port$) = $NBytes$}
+    \item \texttt{sendto($FD$,$Message$,$Flags$,\\        $Domain$,$Address$,$Port$) = $NBytes$}
     \item \texttt{sendto($FD$,$Message$,$Flags$,$Name$) = $NBytes$}
     \item \texttt{sendto($FD$,$Message$,$Name$) = $NBytes$}
     \item \texttt{setsockopt($FD$,$Level$,$Option$,$Value$)}
