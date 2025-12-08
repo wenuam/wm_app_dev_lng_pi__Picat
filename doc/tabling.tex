@@ -41,7 +41,18 @@ Tabling\index{tabling} is a memoization technique that can prevent infinite loop
 \end{verbatim}
 With tabling\index{tabling}, all queries to the \texttt{reach} predicate are guaranteed to terminate, and the function call \texttt{route(N,1,1)} takes only \texttt{N}$^2$ time.
 
-For some problems, such as planning problems, it is infeasible to table\index{tabling} all answers, because there may be an infinite number of answers. For some other problems, such as those that require the computation of aggregates, it is a waste to table\index{tabling} non-contributing answers. Picat allows users to provide table modes\index{mode-directed tabling} to instruct the system about which answers to table\index{tabling}. For a tabled\index{tabling} predicate, users can give a \emph{table mode declaration}\index{mode-directed tabling} in the form ($M_{1},M_{2},\ldots,M_{n}$), where each $M_{i}$ is one of the following: a plus-sign (+) indicates input, a minus-sign (-) indicates output, \texttt{max} indicates that the corresponding variable should be maximized, and \texttt{min} indicates that the corresponding variable should be minimized. The last mode $M_{n}$ can be \texttt{nt}, which indicates that the argument is not tabled. Two types of data can be passed to a tabled predicate as an \texttt{nt} argument: (1) global data that are the same to all the calls of the predicate, and (2) data that are functionally dependent on the input arguments. Input arguments are assumed to be ground.  Output arguments, including \texttt{min} and \texttt{max} arguments, are assumed to be variables. An argument with the mode \texttt{min} or \texttt{max} is called an \emph{objective} argument. Only one argument can be an objective to be optimized. As an objective argument can be a compound value, this limit is not essential, and users can still specify multiple objective variables to be optimized. When a table mode\index{mode-directed tabling} declaration is provided, Picat tables\index{tabling} only one optimal answer for the same input arguments.
+For some problems, such as planning problems, it is infeasible to table\index{tabling} all answers, because there may be an infinite number of answers. For some other problems, such as those that require the computation of aggregates, it is a waste to table\index{tabling} non-contributing answers. Picat allows users to provide table modes\index{mode-directed tabling} to instruct the system about which answers to table\index{tabling}. For a tabled\index{tabling} predicate, users can give a \emph{table mode declaration}\index{mode-directed tabling} in the form ($M_{1},M_{2},\ldots,M_{n}$), where each $M_{i}$ is one of the following: 
+\begin{itemize}
+\item + : indicates input
+\item - : indicates output
+\item \texttt{max}: indicates that the corresponding variable should be maximized (only the first best answer is tabled).\index{\texttt{max}}
+\item \texttt{min} indicates that the corresponding variable should be minimized (only the first best answer is tabled).\index{\texttt{min}}
+\item \texttt{mmax}: indicates that the corresponding variable should be maximized (all best answers are tabled).\index{\texttt{mmax}}
+\item \texttt{mmin} indicates that the corresponding variable should be minimized (all best answers are tabled).\index{\texttt{mmin}}
+\end{itemize}
+The last mode $M_{n}$ can be \texttt{nt}, which indicates that the argument is not tabled. Two types of data can be passed to a tabled predicate as an \texttt{nt} argument: (1) global data that are the same to all the calls of the predicate, and (2) data that are functionally dependent on the input arguments.
+
+An argument with the mode \texttt{max}, \texttt{min}, \texttt{mmax} or \texttt{mmin} is called an \emph{objective} argument. Only one argument can be an objective to be optimized. As an objective argument can be a compound value, this limit is not essential, and users can still specify multiple objective variables to be optimized. When the table mode \texttt{max} or \texttt{min} is provided, Picat tables only one optimal answer for the same input arguments. When the table mode \texttt{mmax} or \texttt{mmin} is provided, Picat tables all optimal answers for the same input arguments. Input arguments are assumed to be ground.  Output arguments, including objective arguments, are assumed to be variables. 
 
 \subsection*{Example}
 \begin{verbatim}
@@ -55,7 +66,7 @@ For some problems, such as planning problems, it is infeasible to table\index{ta
         sp(Z,Y,Path1,W1),
         W = Wxz+W1.
 \end{verbatim}
-The predicate \texttt{edge(X,Y,W)} specifies a weighted directed graph, where \texttt{W} is the weight of the edge between node \texttt{X} and node \texttt{Y}. The predicate \texttt{sp(X,Y,Path,W)} states that \texttt{Path} is a path from \texttt{X} to \texttt{Y} with the minimum weight \texttt{W}. Note that whenever the predicate \texttt{ sp/4} is called, the first two arguments must always be instantiated. For each pair, the system stores only one path with the minimum weight. 
+The predicate \texttt{edge(X,Y,W)} specifies a weighted directed graph, where \texttt{W} is the weight of the edge between node \texttt{X} and node \texttt{Y}. The predicate \texttt{sp(X,Y,Path,W)} states that \texttt{Path} is a path from \texttt{X} to \texttt{Y} with the minimum weight \texttt{W}. Note that whenever the predicate \texttt{ sp/4} is called, the first two arguments must always be instantiated. For each pair, the system stores only one path with the minimum weight. When the mode \texttt{min} is replaced with \texttt{mmin}, the system stores all paths with the minimum weight.
 
 The following program finds a shortest path among those with the minimum weight for each pair of nodes:
 \begin{verbatim}
@@ -83,7 +94,7 @@ The tabling system is useful for offering dynamic programming solutions for plan
         Plan = [Action|Plan1],
         Len = Len1+1.
 \end{verbatim}
-The predicate \texttt{action(Action,S,S1)} selects an action and performs the action on state \texttt{S} to generate another state, \texttt{S1}.
+The predicate \texttt{action(Action,S,S1)} selects an action and performs the action on state \texttt{S} to generate another state, \texttt{S1}. Again, by replacing \texttt{min} with \texttt{mmin}, the predicate \texttt{plan} can be employed to generate all optimal plans.
 
 \subsection*{Example}
 The program shown in Figure \ref{fig:farmer} solves the Farmer's problem: {\em The farmer wants to get his goat, wolf, and cabbage to the other side of the river. His boat isn't very big, and it can only carry him and either his goat, his wolf, or his cabbage. If he leaves the goat alone with the cabbage, then the goat will gobble up the cabbage. If he leaves the wolf alone with the goat, then the wolf will gobble up the goat. When the farmer is present, the goat and cabbage are safe from being gobbled up by their predators.}

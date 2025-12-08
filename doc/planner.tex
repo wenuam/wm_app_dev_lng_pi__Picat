@@ -57,14 +57,6 @@ Depth-bounded search amounts to exploring the search space, taking into account 
 
 \item \texttt{best\_plan($S$,$Plan$)}\index{\texttt{best\_plan/2}}: This predicate is the same as the \texttt{best\_plan/4} predicate, except that the limit is assumed to be 268435455, and that the plan's cost is not returned.
 
-\item \texttt{best\_plan\_nondet($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_nondet/4}}: This predicate is the same as \\\texttt{best\_plan($S$,$Limit$,$Plan$,$Cost$)}, except that it allows multiple best plans to be returned through backtracking.
-
-\item \texttt{best\_plan\_nondet($S$,$Limit$,$Plan$)}: If the second argument is an integer, then this predicate is the same as the \texttt{best\_plan\_nondet/4} predicate, except that the plan's cost is not returned. 
-
-\item \texttt{best\_plan\_nondet($S$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_nondet/3}}: If the second argument is a variable, then this predicate is the same as the \texttt{best\_plan\_nondet/4} predicate, except that the limit is assumed to be 268435455.
-
-\item \texttt{best\_plan\_nondet($S$,$Plan$)}\index{\texttt{best\_plan\_nondet/2}}: This predicate is the same as the \texttt{best\_plan\_nondet/4} predicate, except that the limit is assumed to be 268435455, and that the plan's cost is not returned.
-
 \item \texttt{best\_plan\_bb($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_bb/4}}: 
 This predicate, if it succeeds, binds $Plan$ to an optimal plan that can transform state $S$ to a final state. $Cost$ is the cost of $Plan$, which cannot exceed $Limit$, which is a given non-negative integer. The branch-and-bound algorithm is used to find an optimal plan.
 
@@ -98,6 +90,14 @@ This predicate is the same as the \texttt{best\_plan\_bin/4} predicate, except t
 In contrast to depth-bounded search, depth-unbounded search does not take into account the available resource amount. A new state can be explored even if no resource is available for the exploration. The advantage of depth-unbounded search is that failed states are never re-explored.
 
 \begin{itemize}
+\item \texttt{best\_plan\_nondet($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_nondet/4}}: This predicate is the same as \\\texttt{best\_plan($S$,$Limit$,$Plan$,$Cost$)}, except that it allows multiple best plans to be returned through backtracking.
+
+\item \texttt{best\_plan\_nondet($S$,$Limit$,$Plan$)}: If the second argument is an integer, then this predicate is the same as the \texttt{best\_plan\_nondet/4} predicate, except that the plan's cost is not returned. 
+
+\item \texttt{best\_plan\_nondet($S$,$Plan$,$Cost$)}\index{\texttt{best\_plan\_nondet/3}}: If the second argument is a variable, then this predicate is the same as the \texttt{best\_plan\_nondet/4} predicate, except that the limit is assumed to be 268435455.
+
+\item \texttt{best\_plan\_nondet($S$,$Plan$)}\index{\texttt{best\_plan\_nondet/2}}: This predicate is the same as the \texttt{best\_plan\_nondet/4} predicate, except that the limit is assumed to be 268435455, and that the plan's cost is not returned.
+
 \item \texttt{plan\_unbounded($S$,$Limit$,$Plan$,$Cost$)}\index{\texttt{plan\_unbounded/4}}: This predicate, if it succeeds, binds $Plan$ to a plan that can transform state $S$ to a final state. $Cost$ is the cost of $Plan$, which cannot exceed $Limit$, which is a given non-negative integer.
 
 \item \texttt{plan\_unbounded($S$,$Limit$,$Plan$)} If the second argument is an integer, then this predicate is the same as the \texttt{plan\_unbounded/4} predicate, except that the plan's cost is not returned. 
